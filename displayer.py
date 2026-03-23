@@ -1,6 +1,23 @@
 import json
 import os
 
+from tkinter import Tk, filedialog
+
+def pick_file():
+    Tk().withdraw()  # hide the empty root window
+    path = filedialog.askopenfilename(
+        title="Select a file",
+        filetypes=[
+            ("All files", "*.*"),
+            ("Text files", "*.txt"),
+            ("PDF files", "*.pdf"),
+            ("Word documents", "*.docx *.doc")
+        ]
+    )
+    return path
+
+
+
 try:
     import pdfplumber
     from docx import Document
@@ -11,42 +28,48 @@ except ImportError as e:
     from docx import Document
     import textract
 
+filepath = os.path.abspath(__file__)
+directory_path = os.path.dirname(filepath)
+os.chdir(directory_path)
+currentFile =  os.path.basename(__file__)
+filename = currentFile[:-3]
 
 
-lowercase = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-uppercase = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
-punctuation = ["!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "{", "}", "°"]
-digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-alpha_wordsigns = ["but", "can", "do", "every", "from", "go", "have", "just", "knowledge", "like", "more", "not", "people", "quite", "rather", "so", "that", "us", "very", "will", "it", "you", "as"]
-initial_letter_contractions = ["day", "ever", "father", "here", "know", "lord", "mother", "name", "one", "part", "question", "right", "some", "time", "under", "work", "young", "there", "character", "through", "where", "ought", "upon", "word", "these", "those", "whose", "cannot", "had", "many", "spirit", "world", "their"]
-strong_groupsigns = ["ch", "sh", "th", "wh", "ou", "st", "gh", "ed", "er", "ow", "ar", "in"]
-strong_contraction = ["and", "for", "of", "the", "with"]
-strong_wordsigns = ["child","shall","this","which","out","still"]
-lower_wordsigns = ["be","enough","were","his","in","was"]
-lower_groupsigns = ["ea", "bb", "cc", "ff", "gg", "be", "con", "dis", "en", "in"]
-shortform_words = ["about", "above", "according", "across", "after", "afternoon", "afterward", "again", "against", "almost", "already", "also", "although", "altogether", "always", "because", "before", "behind", "below", "beneath", "beside", "between", "beyond", "blind", "braille", "children", "could", "deceive", "declare", "either", "first", "friend", "good", "great", "herself", "him", "himself", "immediate", "its", "itself", "letter", "little", "much", "must", "myself", "necessary", "neither", "oneself", "ourselves", "paid", "perceive", "perhaps", "quick", "receive", "said", "should", "such", "themselves", "today", "together", "tomorrow", "tonight", "would", "your", "yourself", "yourselves"]
-final_letter_groupsigns = ["ound", "ance", "sion", "less", "ount", "ence", "ong", "ful", "tion", "ness", "ment", "ity"]
+def generate():
+    lowercase = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+    uppercase = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+    punctuation = ["!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "{", "}", "°"]
+    digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    alpha_wordsigns = ["but", "can", "do", "every", "from", "go", "have", "just", "knowledge", "like", "more", "not", "people", "quite", "rather", "so", "that", "us", "very", "will", "it", "you", "as"]
+    initial_letter_contractions = ["day", "ever", "father", "here", "know", "lord", "mother", "name", "one", "part", "question", "right", "some", "time", "under", "work", "young", "there", "character", "through", "where", "ought", "upon", "word", "these", "those", "whose", "cannot", "had", "many", "spirit", "world", "their"]
+    strong_groupsigns = ["ch", "sh", "th", "wh", "ou", "st", "gh", "ed", "er", "ow", "ar", "in"]
+    strong_contraction = ["and", "for", "of", "the", "with"]
+    strong_wordsigns = ["child","shall","this","which","out","still"]
+    lower_wordsigns = ["be","enough","were","his","in","was"]
+    lower_groupsigns = ["ea", "bb", "cc", "ff", "gg", "be", "con", "dis", "en", "in"]
+    shortform_words = ["about", "above", "according", "across", "after", "afternoon", "afterward", "again", "against", "almost", "already", "also", "although", "altogether", "always", "because", "before", "behind", "below", "beneath", "beside", "between", "beyond", "blind", "braille", "children", "could", "deceive", "declare", "either", "first", "friend", "good", "great", "herself", "him", "himself", "immediate", "its", "itself", "letter", "little", "much", "must", "myself", "necessary", "neither", "oneself", "ourselves", "paid", "perceive", "perhaps", "quick", "receive", "said", "should", "such", "themselves", "today", "together", "tomorrow", "tonight", "would", "your", "yourself", "yourselves"]
+    final_letter_groupsigns = ["ound", "ance", "sion", "less", "ount", "ence", "ong", "ful", "tion", "ness", "ment", "ity"]
 
 
-categories = {
-    "lowercase": lowercase,
-    "uppercase": uppercase,
-    "punctuation": punctuation,
-    "digits": digits,
-    "alpha_wordsigns": alpha_wordsigns,
-    "initial_letter_contractions": initial_letter_contractions,
-    "strong_groupsigns": strong_groupsigns,
-    "strong_contraction": strong_contraction,
-    "strong_wordsigns": strong_wordsigns,
-    "lower_wordsigns": lower_wordsigns,
-    "lower_groupsigns": lower_groupsigns,
-    "shortform_words": shortform_words,
-    "final_letter_groupsigns": final_letter_groupsigns
-}
+    categories = {
+        "lowercase": lowercase,
+        "uppercase": uppercase,
+        "punctuation": punctuation,
+        "digits": digits,
+        "alpha_wordsigns": alpha_wordsigns,
+        "initial_letter_contractions": initial_letter_contractions,
+        "strong_groupsigns": strong_groupsigns,
+        "strong_contraction": strong_contraction,
+        "strong_wordsigns": strong_wordsigns,
+        "lower_wordsigns": lower_wordsigns,
+        "lower_groupsigns": lower_groupsigns,
+        "shortform_words": shortform_words,
+        "final_letter_groupsigns": final_letter_groupsigns
+    }
 
-data = {}
+    data = {}
 
-braille = {
+    braille = {
     "a": {"type": "lowercase", "value": [(1,)]},
     "b": {"type": "lowercase", "value": [(1,2)]},
     "c": {"type": "lowercase", "value": [(1,4)]},
@@ -315,25 +338,29 @@ braille = {
     "as":         { "type": "alpha_wordsigns", "value": [(1,3,5,6)]}}
 
 
-for typename, items in categories.items():
-    for key in items:
-        data[key] = {
-            "type": typename,
-            "value": braille.get(key, [])
-        }
+    for typename, items in categories.items():
+        for key in items:
+            data[key] = {
+                "type": typename,
+                "value": braille.get(key, [])
+            }
 
-with open("brailledict.json", "w") as f:
-    json.dump(data,f,indent = 4)
+    with open("brailledict.json", "w") as f:
+        json.dump(data,f,indent = 4)
+
+
+def check_existence(path):
+    if not os.path.exists(path):
+        with open(path, "w") as f:
+            f.close()
+            generate()
+
+check_existence("brailledict.json")
 
 with open("brailledict.json", "r") as f:
     raw = json.load(f)
 
 legal_tokens = list(raw.keys())
-
-for key in legal_tokens:
-    print(key + ":", end = "")
-    print(raw[key]["value"]["value"])
-
 
 def extract_text(path):
     import os
@@ -361,3 +388,12 @@ def extract_text(path):
 
 def match_keys(text, keys):
     return [k for k in keys if k in text]
+
+
+text_file_path = pick_file()
+
+if text_file_path:
+    text = extract_text(text_file_path)
+    matches = match_keys(text,legal_tokens)
+
+print(matches)
