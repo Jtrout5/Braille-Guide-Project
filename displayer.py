@@ -1,10 +1,59 @@
 import json
 import os
-
+import shutil
+import zipfile
+import urllib3
 from tkinter import Tk, filedialog
 
+try:
+    import pdfplumber
+    from docx import Document
+    import textract
+    import requests
+    import pyautogui
+except ImportError as e:
+    os.system("pip3 install -r requirements.txt")
+    import pdfplumber
+    from docx import Document
+    import textract
+    import requests
+    import pyautogui
+
+def download_zip_file(url, destination_folder, filename):
+    '''
+    Takes 3 args, a url for the file, a destination folder, and a name to give the file
+    Downloads the file found at url, gives it filename as a name and places it in the destination folder
+    '''
+    file_path = os.path.join(destination_folder, filename)
+    response = requests.get(url, stream=True)
+    with open(file_path, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
+            
+def unzip_all(zip_file_path, destination_directory):
+    """
+    Takes 2 args, a path to a zip file and a path to the destination folder
+    """
+    if not os.path.exists(destination_directory):
+        os.makedirs(destination_directory)
+    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+        zip_ref.extractall(destination_directory)
+
+try: ## graphics package
+    from cmu_graphics import *
+except ImportError as e:
+    zip_url = 'https://s3.amazonaws.com/cmu-cs-academy.lib.prod/desktop-cmu-graphics/cmu_graphics_installer.zip'  
+    output_directory = "."
+    output_filename = "cmu_graphics_installer.zip"
+    download_zip_file(zip_url, output_directory, output_filename)
+    unzip_all(output_directory+'/cmu_graphics_installer.zip', output_directory)
+    shutil.move(output_directory+"/cmu_graphics_installer/cmu_graphics", ".")
+    os.remove(output_filename)
+    shutil.rmtree("cmu_graphics_installer")
+    from cmu_graphics import *
+    
 def pick_file():
-    Tk().withdraw()  # hide the empty root window
+    Tk().withdraw() 
     path = filedialog.askopenfilename(
         title="Select a file",
         filetypes=[
@@ -16,17 +65,15 @@ def pick_file():
     )
     return path
 
-
-
-try:
-    import pdfplumber
-    from docx import Document
-    import textract
-except ImportError as e:
-    os.system("pip3 install -r requirements.txt")
-    import pdfplumber
-    from docx import Document
-    import textract
+selected_delay = 45
+app.time_delay = 45
+app.index = -1
+size = pyautogui.size()
+width = size[0]
+height = size[1]
+app.width = width
+app.height = height
+app.autofs = 0
 
 filepath = os.path.abspath(__file__)
 directory_path = os.path.dirname(filepath)
@@ -38,7 +85,7 @@ filename = currentFile[:-3]
 def generate():
     lowercase = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
     uppercase = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
-    punctuation = ["!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "{", "}", "°"]
+    punctuation = ["!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "{", "}", "°", " "]
     digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     alpha_wordsigns = ["but", "can", "do", "every", "from", "go", "have", "just", "knowledge", "like", "more", "not", "people", "quite", "rather", "so", "that", "us", "very", "will", "it", "you", "as"]
     initial_letter_contractions = ["day", "ever", "father", "here", "know", "lord", "mother", "name", "one", "part", "question", "right", "some", "time", "under", "work", "young", "there", "character", "through", "where", "ought", "upon", "word", "these", "those", "whose", "cannot", "had", "many", "spirit", "world", "their"]
@@ -163,6 +210,7 @@ def generate():
     "{":  {"type": "punctuation", "value": [(4,5,6),(1,2,6)]}, 
     "}":  {"type": "punctuation", "value": [(4,5,6),(3,4,5)]}, 
     "°":  {"type": "punctuation", "value": [(4,5),(2,4,5)]}, 
+    " ":  {"type": "punctuation", "value": [("space",)]},
     "ch": {"type": "strong_groupsigns", "value": [(1,6)]},
     "sh": {"type": "strong_groupsigns", "value": [(1,4,6)]},
     "th": {"type": "strong_groupsigns", "value": [(1,4,5,6)]},
@@ -363,7 +411,6 @@ with open("brailledict.json", "r") as f:
 legal_tokens = list(raw.keys())
 
 def extract_text(path):
-    import os
     ext = os.path.splitext(path)[1].lower()
 
     if ext == ".txt":
@@ -390,10 +437,77 @@ def match_keys(text, keys):
     return [k for k in keys if k in text]
 
 
-text_file_path = pick_file()
+def display(tuple_val):
+    for button in buttons:
+        if button.id in tuple_val:
+            button.fill = 'lime'
+        else:
+            button.fill = 'grey'
+            
+app.matches = []
 
-if text_file_path:
-    text = extract_text(text_file_path)
-    matches = match_keys(text,legal_tokens)
+def from_device():
+    text_file_path = pick_file()
+    if text_file_path:
+        text = extract_text(text_file_path)
+        app.matches += match_keys(text,legal_tokens)
 
-print(matches)
+
+
+def onStep():
+    if(app.autofs <= 3):
+        app.autofs += 1
+    if(app.autofs == 3):
+        pyautogui.keyDown("command")
+        pyautogui.keyDown('ctrl')
+        pyautogui.press('f')
+        pyautogui.keyUp("command")
+        pyautogui.keyUp("ctrl")
+    if(app.time_delay>0):
+        app.time_delay-=1
+    else:
+        if(app.mode == 'auto'):
+            if(app.index>=0):
+                for j in range(len(app.matches[app.index])):
+                    display(app.matches[app.index][j])
+
+app.mode = 'selecting'
+
+buttons = Group()
+
+def create_button(locX, id):
+    if(id == 'space'):
+        new = Oval(locX, 3*app.height/4, app.width/4, app.height/10, fill='grey', border = 'black')
+    else:
+        new = Oval(locX, app.height/2, app.width/10, app.height/5, fill='grey', border = 'black')
+    new.id = id
+    new.label = (Label(id, locX, new.centerY, size = (app.width+app.height)/100))
+    return new
+
+def start():
+    buttons.add(create_button(app.width/9, 3))
+    buttons.add(create_button(2*app.width/9, 2))
+    buttons.add(create_button(3*app.width/9, 1))
+    buttons.add(create_button(6*app.width/9, 4))
+    buttons.add(create_button(7*app.width/9, 5))
+    buttons.add(create_button(8*app.width/9, 6))
+    buttons.add(create_button(app.width/2, 'space'))
+
+start()
+
+typing_input_button = Rect(0,0,app.width/10, app.height/15, fill='white', border = 'black')
+typing_input_label = Label("Type Your Input", typing_input_button.centerX, typing_input_button.centerY)
+file_input_button = Rect(app.width,0,app.width/10, app.height/15, fill='white', border = 'black', align = 'top-right')
+file_input_label = Label("Insert File", file_input_button.centerX, file_input_button.centerY)
+
+def onMousePress(x,y):
+    if(typing_input_button.contains(x,y)):
+        text = app.getTextInput("Enter your text for braille conversion")
+        app.matches+=match_keys(text, legal_tokens)
+        for i in range(len(app.matches)):
+            print(raw[app.matches[i]]["value"]["value"])
+        app.matches.clear()
+    if(file_input_button.contains(x,y)):
+        from_device()
+
+app.run()
