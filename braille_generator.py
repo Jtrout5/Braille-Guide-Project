@@ -10,8 +10,8 @@ initial_letter_contractions = ["day", "ever", "father", "here", "know", "lord", 
 strong_groupsigns = ["ch", "sh", "th", "wh", "ou", "st", "gh", "ed", "er", "ow", "ar", "in"]
 strong_contraction = ["and", "for", "of", "the", "with"]
 strong_wordsigns = ["child","shall","this","which","out","still"]
-lower_wordsigns = ["be","enough","were","his","in","was"]
-lower_groupsigns = ["ea", "bb", "cc", "ff", "gg", "be", "con", "dis", "en", "in"]
+lower_wordsigns = ["be","enough","were","his","was"]
+lower_groupsigns = ["ea", "bb", "cc", "ff", "gg", "be", "con", "dis", "en"]
 shortform_words = ["about", "above", "according", "across", "after", "afternoon", "afterward", "again", "against", "almost", "already", "also", "although", "altogether", "always", "because", "before", "behind", "below", "beneath", "beside", "between", "beyond", "blind", "braille", "children", "could", "deceive", "declare", "either", "first", "friend", "good", "great", "herself", "him", "himself", "immediate", "its", "itself", "letter", "little", "much", "must", "myself", "necessary", "neither", "oneself", "ourselves", "paid", "perceive", "perhaps", "quick", "receive", "said", "should", "such", "themselves", "today", "together", "tomorrow", "tonight", "would", "your", "yourself", "yourselves"]
 final_letter_groupsigns = ["ound", "ance", "sion", "less", "ount", "ence", "ong", "ful", "tion", "ness", "ment", "ity"]
 
@@ -188,11 +188,9 @@ braille = {
 "con": {"type": "lower_groupsigns", "value": [(2,5)]},
 "dis": {"type": "lower_groupsigns", "value": [(2,5,6)]},
 "en":  {"type": "lower_groupsigns", "value": [(2,6)]},
-"in":  {"type": "lower_groupsigns", "value": [(3,5)]},
 "enough": {"type": "lower_wordsigns", "value": [(2,6)]},
 "were":   {"type": "lower_wordsigns", "value": [(2,3,5,6)]},
 "his":    {"type": "lower_wordsigns", "value": [(2,3,6)]},
-"in":     {"type": "lower_wordsigns", "value": [(3,5)]},
 "was":    {"type": "lower_wordsigns", "value": [(3,5,6)]},
 "child": {"type": "strong_wordsigns", "value": [(1,6)]},
 "shall": {"type": "strong_wordsigns", "value": [(1,4,6)]},
