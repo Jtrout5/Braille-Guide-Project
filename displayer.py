@@ -113,7 +113,6 @@ def tokenize(txt):
 
 
 def match_keys(text, keys):
-    # Precompute categories
     alpha_wordsigns = [k for k in keys if raw[k]["type"] == "alpha_wordsigns"]
     punctuation = [k for k in keys if raw[k]["type"] == "punctuation"]
     non_alpha_wordsigns = [
@@ -129,14 +128,13 @@ def match_keys(text, keys):
             "lower_groupsigns",
             "final_letter_groupsigns",
             "shortform_words",
-            
-            
         )
     ]
     leftover_letters = [
         k for k in keys
         if raw[k]["type"] in ("lowercase", "uppercase")
     ]
+    digits = [k for k in keys if raw[k]["type"] == "digits"]
 
     app.sequence = [None] * len(text)
 
@@ -148,7 +146,7 @@ def match_keys(text, keys):
                 app.sequence[i] = raw[key]["value"]
                 text[i] = None
                 break
-
+            
     for i, token in enumerate(text):
         if token is None:
             continue
@@ -229,6 +227,35 @@ def match_keys(text, keys):
         app.sequence[i:i+1] = seq_list
 
         i += len(split_list)
+        
+    i = 0
+    in_number_mode = False
+
+    while i < len(text):
+        token = text[i]
+
+        if token is None:
+            i += 1
+            continue
+
+        if all(ch in digits for ch in token):
+            digit_seq = []
+
+            if not in_number_mode:
+                digit_seq.append([3, 4, 5, 6])
+                in_number_mode = True
+
+            for ch in token:
+                digit_seq.append(raw[ch]["value"])
+
+            app.sequence[i] = digit_seq
+            text[i] = None
+
+        else:
+            if token not in punctuation:
+                in_number_mode = False
+
+        i += 1
 
     i = 0
     while i < len(text):
