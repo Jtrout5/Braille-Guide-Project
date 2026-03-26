@@ -41,7 +41,7 @@ def unzip_all(zip_file_path, destination_directory):
     with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
         zip_ref.extractall(destination_directory)
 
-try: ## graphics package
+try: 
     from cmu_graphics import *
 except ImportError as e:
     zip_url = 'https://s3.amazonaws.com/cmu-cs-academy.lib.prod/desktop-cmu-graphics/cmu_graphics_installer.zip'  
@@ -368,9 +368,117 @@ app.playing = False
 auto_manual_button = Circle(app.width/4, app.width/40, app.width/40, fill='white', border = 'black')
 auto_manual_label = Label("Manual Mode", auto_manual_button.centerX, auto_manual_button.centerY)
 app.displayMode = "Manual"
+linesPerPageLabel = Label("Characters per line: %d" %app.pageWidth, 3*app.width/4, app.height/40, size = app.width/50)
+linesIncreaseButton = Rect(linesPerPageLabel.centerX+1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black')
+linesIncrease10Button = Rect(linesIncreaseButton.right+1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black')
+linesIncreaseMaxButton = Rect(linesIncrease10Button.right+1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black')
+linesDecreaseButton = Rect(linesPerPageLabel.centerX-1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black', align = 'top-right')
+linesDecrease10Button = Rect(linesDecreaseButton.left-1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black', align = 'top-right')
+linesDecreaseMaxButton = Rect(linesDecrease10Button.left-1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black', align = 'top-right')
+inc1Label = Label("+1",linesIncreaseButton.centerX, linesIncreaseButton.centerY)
+inc1Label = Label("+10",linesIncrease10Button.centerX, linesIncreaseButton.centerY)
+inc1Label = Label("Max",linesIncreaseMaxButton.centerX, linesIncreaseButton.centerY)
+inc1Label = Label("-1",linesDecreaseButton.centerX, linesIncreaseButton.centerY)
+inc1Label = Label("-10",linesDecrease10Button.centerX, linesIncreaseButton.centerY)
+inc1Label = Label("Min",linesDecreaseMaxButton.centerX, linesIncreaseButton.centerY)
+
+
+
+
+def increase_speed_max():
+    '''
+    Takes no args and returns no values
+    If the game is in screensaver mode, then this will set screensaver autoclicks to max speed
+    '''
+    app.pageWidth = "Infinite"
+    linesPerPageLabel.value = "Characters per line: %s" %app.pageWidth 
+
+def decrease_speed_max():
+    '''
+    Takes no args and returns no values
+    If the game is in screensaver mode, then this will set screensaver autoclicks to minimum speed
+    '''
+    app.pageWidth = 10
+    linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
+
+def increase_speed_10():
+    '''
+    Takes no args and returns no values
+    If the game is in screensaver mode, then this will increase the speed of autoclicks by 10 per minute
+    Will set to max speed if an increase of 10 would put the speed too high
+    '''
+    if ((app.pageWidth != "Infinite") and (app.pageWidth <50)):
+        app.pageWidth+=10
+        linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
+    else:
+        increase_speed_max()
+
+def decrease_speed_10():
+    '''
+    Takes no args and returns no values
+    If the game is in screensaver mode, then this will decrease the speed of autoclicks by 10 per minute
+    Will set to minumum speed if a decrease of 10 would put the speed too low
+    '''
+    if (app.pageWidth != "Infinite") and (app.pageWidth >20):
+        app.pageWidth -= 10
+        linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
+    else:
+        if(app.pageWidth == "Infinte"):
+            app.pageWidth = 50
+            linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
+        else: 
+            decrease_speed_max()
+
+def increase_speed():
+    '''
+    Takes no args and returns no values
+    If the game is in screensaver mode, then this will increase the speed of autoclicks by 1 per minute
+    Only take action if speed is not already max
+    '''
+    if app.pageWidth != "Infinite":
+        app.pageWidth+=1
+        linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
+        if(app.pageWidth >=60):
+            app.pageWidth = "Infinite"
+            linesPerPageLabel.value = "Characters per line: %s" %app.pageWidth
+
+def decrease_speed():
+    '''
+    Takes no args and returns no values
+    If the game is in screensaver mode, then this will decrease the speed of autoclicks by 1 per minute
+    Only take action is speed is not already minimum
+'''
+    if(app.pageWidth == "Infinite"):
+        app.pageWidth = 59
+        linesPerPageLabel.value = "Characters per line %d" % app.pageWidth
+    else:
+        if app.pageWidth>10:
+            app.pageWidth-=1
+            linesPerPageLabel.value = "Characters per line %d" % app.pageWidth
+            
+def check_speed(x,y):
+    '''
+    Takes 2 positional arguments, x and y
+    Returns no values
+    Checks if any speed related button contains those coordinates
+    Calls speed alteration functions as needed
+    '''
+    if(linesDecreaseButton.contains(x, y)):
+        decrease_speed()
+    if(linesIncreaseButton.contains(x, y)):
+        increase_speed()
+    if(linesDecrease10Button.contains(x, y)):
+        decrease_speed_10()
+    if(linesIncrease10Button.contains(x, y)):
+        increase_speed_10()
+    if(linesDecreaseMaxButton.contains(x, y)):
+        decrease_speed_max()
+    if(linesIncreaseMaxButton.contains(x, y)):
+        increase_speed_max()
 
 
 def onMousePress(x,y):
+    check_speed(x,y)
     if(typing_input_button.contains(x,y)):
         app.mode = 'typing'
         app.tokens.clear()
@@ -408,7 +516,6 @@ def onMousePress(x,y):
             app.displayMode = "Manual"
             app.playing = False
             play_pause_label.value = "Paused"
-
 
 
 app.run()
