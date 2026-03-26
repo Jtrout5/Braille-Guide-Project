@@ -304,12 +304,8 @@ braille = {
 "as":         { "type": "alpha_wordsigns", "value": [(1,3,5,6)]}}
 
 
-for typename, items in categories.items():
-    for key in items:
-        data[key] = {
-            "type": typename,
-            "value": braille.get(key, [])
-        }
+for key in braille:
+    data[key] = braille.get(key, [])
 
 with open("brailledict.json", "w") as f:
     json.dump(data,f,indent = 4)
