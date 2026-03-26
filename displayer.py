@@ -129,10 +129,7 @@ def match_keys(text, keys):
             "shortform_words",
         )
     ]
-    leftover_letters = [
-        k for k in keys
-        if raw[k]["type"] in ("lowercase", "uppercase")
-    ]
+    leftover_letters = [k for k in keys if raw[k]["type"] == "lowercase"]
     digits = [k for k in keys if raw[k]["type"] == "digits"]
 
     app.sequence = [None] * len(text)
@@ -378,11 +375,11 @@ linesDecreaseButton = Rect(linesPerPageLabel.centerX-1, linesPerPageLabel.bottom
 linesDecrease10Button = Rect(linesDecreaseButton.left-1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black', align = 'top-right')
 linesDecreaseMaxButton = Rect(linesDecrease10Button.left-1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black', align = 'top-right')
 inc1Label = Label("+1",linesIncreaseButton.centerX, linesIncreaseButton.centerY)
-inc1Label = Label("+10",linesIncrease10Button.centerX, linesIncreaseButton.centerY)
-inc1Label = Label("Max",linesIncreaseMaxButton.centerX, linesIncreaseButton.centerY)
-inc1Label = Label("-1",linesDecreaseButton.centerX, linesIncreaseButton.centerY)
-inc1Label = Label("-10",linesDecrease10Button.centerX, linesIncreaseButton.centerY)
-inc1Label = Label("Min",linesDecreaseMaxButton.centerX, linesIncreaseButton.centerY)
+inc2Label = Label("+10",linesIncrease10Button.centerX, linesIncreaseButton.centerY)
+inc3Label = Label("Max",linesIncreaseMaxButton.centerX, linesIncreaseButton.centerY)
+inc4Label = Label("-1",linesDecreaseButton.centerX, linesIncreaseButton.centerY)
+inc5Label = Label("-10",linesDecrease10Button.centerX, linesIncreaseButton.centerY)
+inc6Label = Label("Min",linesDecreaseMaxButton.centerX, linesIncreaseButton.centerY)
 
 
 def flatten(lst):
@@ -429,11 +426,11 @@ def decrease_speed_10():
     If the game is in screensaver mode, then this will decrease the speed of autoclicks by 10 per minute
     Will set to minumum speed if a decrease of 10 would put the speed too low
     '''
-    if (app.pageWidth != "Infinite") and (app.pageWidth >20):
+    if (app.pageWidth != "Infinite") and (app.pageWidth >= 20):
         app.pageWidth -= 10
         linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
     else:
-        if(app.pageWidth == "Infinte"):
+        if(app.pageWidth == "Infinite"):
             app.pageWidth = 50
             linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
         else: 
