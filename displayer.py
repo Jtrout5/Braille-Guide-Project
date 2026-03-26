@@ -57,6 +57,7 @@ except ImportError as e:
 selected_delay = 45
 app.time_delay = 45
 app.index = -1
+app.pageWidth = 42
 size = pyautogui.size()
 width = size[0]
 height = size[1]
@@ -112,31 +113,45 @@ def tokenize(txt):
 
 
 def match_keys(text, keys):
-    broken = text[:]
+    # Precompute categories
     alpha_wordsigns = [k for k in keys if raw[k]["type"] == "alpha_wordsigns"]
     punctuation = [k for k in keys if raw[k]["type"] == "punctuation"]
-    non_alpha_wordsigns = [k for k in keys if raw[k]["type"] in ("lower_wordsigns", "strong_wordsigns")]
-    groupsigns = [k for k in keys if raw[k]["type"] in (
-        "strong_groupsigns", "lower_groupsigns", "final_letter_groupsigns",
-        "strong_contractions", "shortform_words", "initial_letter_contractions"
-    )]
-    leftover_letters = [k for k in keys if raw[k]["type"] in ("lowercase", "uppercase")]
+    non_alpha_wordsigns = [
+        k for k in keys
+        if raw[k]["type"] in ("lower_wordsigns", "strong_wordsigns")
+    ]
+    groupsigns = [
+        k for k in keys
+        if raw[k]["type"] in (
+            "strong_contraction",
+            "strong_groupsigns",
+            "initial_letter_contractions",
+            "lower_groupsigns",
+            "final_letter_groupsigns",
+            "shortform_words",
+            
+            
+        )
+    ]
+    leftover_letters = [
+        k for k in keys
+        if raw[k]["type"] in ("lowercase", "uppercase")
+    ]
 
     app.sequence = [None] * len(text)
-    
-    for i in range(len(text)):
-        token = text[i]
+
+    for i, token in enumerate(text):
         if token is None:
             continue
-        
         for key in punctuation:
             if token == key:
                 app.sequence[i] = raw[key]["value"]
                 text[i] = None
                 break
-        if text[i] is None:
-            continue
 
+    for i, token in enumerate(text):
+        if token is None:
+            continue
         for key in alpha_wordsigns:
             if token.lower() == key:
                 val = raw[key]["value"]
@@ -145,9 +160,10 @@ def match_keys(text, keys):
                 app.sequence[i] = val
                 text[i] = None
                 break
-        if text[i] is None:
-            continue
 
+    for i, token in enumerate(text):
+        if token is None:
+            continue
         for key in non_alpha_wordsigns:
             if token.lower() == key:
                 val = raw[key]["value"]
@@ -165,47 +181,43 @@ def match_keys(text, keys):
             i += 1
             continue
 
-        lower_token = token.lower()
+        lower = token.lower()
         n = len(token)
 
         dp = [None] * (n + 1)
         dp[n] = (0, [], [])
 
         for pos in range(n - 1, -1, -1):
-            best = None
+            best_cells = float("inf")
+            best_seq = None
+            best_split = None
 
-            remainder = token[pos:]
-            next_len, next_seq, next_split = dp[n]
+            next_cells, next_seq, next_split = dp[pos + 1]
+            fallback_cells = next_cells + 1
+            fallback_seq = [None] + next_seq
+            fallback_split = [token[pos]] + next_split
 
-            best = (
-                next_len + len(remainder),
-                [None] + next_seq,
-                [remainder] + next_split
-            )
+            best_cells = fallback_cells
+            best_seq = fallback_seq
+            best_split = fallback_split
 
             for key in groupsigns:
-                if lower_token.startswith(key, pos):
+                if lower.startswith(key, pos):
                     end = pos + len(key)
+                    next_cells, next_seq, next_split = dp[end]
 
                     val = raw[key]["value"]
-                    length = len(val)
+                    cell_count = len(val)
 
-                    next_len, next_seq, next_split = dp[end]
+                    total = next_cells + cell_count
+                    if total < best_cells:
+                        best_cells = total
+                        best_seq = [val] + next_seq
+                        best_split = [token[pos:end]] + next_split
 
-                    total_len = next_len + length
+            dp[pos] = (best_cells, best_seq, best_split)
 
-                    candidate = (
-                        total_len,
-                        [val] + next_seq,
-                        [token[pos:end]] + next_split
-                    )
-
-                    if total_len < best[0]:
-                        best = candidate
-
-            dp[pos] = best
-
-        _, seq_list, split_tokens = dp[0]
+        _, seq_list, split_list = dp[0]
 
         if token[0].isupper():
             for idx, seq in enumerate(seq_list):
@@ -213,11 +225,11 @@ def match_keys(text, keys):
                     seq_list[idx] = [[6]] + seq
                     break
 
-        text[i:i+1] = split_tokens
+        text[i:i+1] = split_list
         app.sequence[i:i+1] = seq_list
 
-        i += len(split_tokens)
-        
+        i += len(split_list)
+
     i = 0
     while i < len(text):
         token = text[i]
@@ -227,33 +239,26 @@ def match_keys(text, keys):
             i += 1
             continue
 
-        # Expand token into characters
         new_tokens = []
-        new_sequence = []
+        new_seq = []
 
         for ch in token:
-            lower_ch = ch.lower()
-
-            if lower_ch in leftover_letters:
-                val = raw[lower_ch]["value"]
-
-                # Capital letter handling
+            low = ch.lower()
+            if low in leftover_letters:
+                val = raw[low]["value"]
                 if ch.isupper():
                     val = [[6]] + val
-
                 new_tokens.append(ch)
-                new_sequence.append(val)
+                new_seq.append(val)
             else:
-                # fallback (shouldn't usually happen)
                 new_tokens.append(ch)
-                new_sequence.append(None)
+                new_seq.append(None)
 
         text[i:i+1] = new_tokens
-        app.sequence[i:i+1] = new_sequence
+        app.sequence[i:i+1] = new_seq
 
         i += len(new_tokens)
 
-    return [] 
 
 def display(tuple_val):
     for button in buttons:
@@ -281,7 +286,7 @@ def from_device():
         text = extract_text(text_file_path)
         app.tokens = tokenize(text)
         app.sequence = [[None]]*len(app.tokens)
-        app.matches += match_keys(app.tokens,legal_tokens)
+        match_keys(app.tokens,legal_tokens)
 
 
 
@@ -348,7 +353,8 @@ def onMousePress(x,y):
         app.mode = 'chooseSetting'
         app.tokens+=tokenize(text)
         app.sequence = [[None]]*len(app.tokens)
-        app.matches+= match_keys(app.tokens, legal_tokens)
+        match_keys(app.tokens, legal_tokens)
+        print(text)
         print(app.sequence)
         app.tokens.clear()
         sys.exit(0) ## JUST DURING TESTING
