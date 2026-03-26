@@ -4,6 +4,7 @@ import shutil
 import zipfile
 import subprocess
 import sys
+import re
 from tkinter import Tk, filedialog
 
 try:
@@ -105,9 +106,154 @@ def extract_text(path):
         return textract.process(path).decode("utf-8")
 
 
-def match_keys(text, keys):
-    return [k for k in keys if k in text]
+def tokenize(txt):
+    tokens = re.findall(r"[A-Za-z0-9]+|[^\w\s]| ", txt)
+    return tokens
 
+
+def match_keys(text, keys):
+    broken = text[:]
+    alpha_wordsigns = [k for k in keys if raw[k]["type"] == "alpha_wordsigns"]
+    punctuation = [k for k in keys if raw[k]["type"] == "punctuation"]
+    non_alpha_wordsigns = [k for k in keys if raw[k]["type"] in ("lower_wordsigns", "strong_wordsigns")]
+    groupsigns = [k for k in keys if raw[k]["type"] in (
+        "strong_groupsigns", "lower_groupsigns", "final_letter_groupsigns",
+        "strong_contractions", "shortform_words", "initial_letter_contractions"
+    )]
+    leftover_letters = [k for k in keys if raw[k]["type"] in ("lowercase", "uppercase")]
+
+    app.sequence = [None] * len(text)
+    
+    for i in range(len(text)):
+        token = text[i]
+        if token is None:
+            continue
+        
+        for key in punctuation:
+            if token == key:
+                app.sequence[i] = raw[key]["value"]
+                text[i] = None
+                break
+        if text[i] is None:
+            continue
+
+        for key in alpha_wordsigns:
+            if token.lower() == key:
+                val = raw[key]["value"]
+                if token[0].isupper():
+                    val = [[6]] + val
+                app.sequence[i] = val
+                text[i] = None
+                break
+        if text[i] is None:
+            continue
+
+        for key in non_alpha_wordsigns:
+            if token.lower() == key:
+                val = raw[key]["value"]
+                if token[0].isupper():
+                    val = [[6]] + val
+                app.sequence[i] = val
+                text[i] = None
+                break
+
+    i = 0
+    while i < len(text):
+        token = text[i]
+
+        if token is None or not token.strip():
+            i += 1
+            continue
+
+        lower_token = token.lower()
+        n = len(token)
+
+        dp = [None] * (n + 1)
+        dp[n] = (0, [], [])
+
+        for pos in range(n - 1, -1, -1):
+            best = None
+
+            remainder = token[pos:]
+            next_len, next_seq, next_split = dp[n]
+
+            best = (
+                next_len + len(remainder),
+                [None] + next_seq,
+                [remainder] + next_split
+            )
+
+            for key in groupsigns:
+                if lower_token.startswith(key, pos):
+                    end = pos + len(key)
+
+                    val = raw[key]["value"]
+                    length = len(val)
+
+                    next_len, next_seq, next_split = dp[end]
+
+                    total_len = next_len + length
+
+                    candidate = (
+                        total_len,
+                        [val] + next_seq,
+                        [token[pos:end]] + next_split
+                    )
+
+                    if total_len < best[0]:
+                        best = candidate
+
+            dp[pos] = best
+
+        _, seq_list, split_tokens = dp[0]
+
+        if token[0].isupper():
+            for idx, seq in enumerate(seq_list):
+                if seq is not None:
+                    seq_list[idx] = [[6]] + seq
+                    break
+
+        text[i:i+1] = split_tokens
+        app.sequence[i:i+1] = seq_list
+
+        i += len(split_tokens)
+        
+    i = 0
+    while i < len(text):
+        token = text[i]
+        seq = app.sequence[i]
+
+        if token is None or seq is not None:
+            i += 1
+            continue
+
+        # Expand token into characters
+        new_tokens = []
+        new_sequence = []
+
+        for ch in token:
+            lower_ch = ch.lower()
+
+            if lower_ch in leftover_letters:
+                val = raw[lower_ch]["value"]
+
+                # Capital letter handling
+                if ch.isupper():
+                    val = [[6]] + val
+
+                new_tokens.append(ch)
+                new_sequence.append(val)
+            else:
+                # fallback (shouldn't usually happen)
+                new_tokens.append(ch)
+                new_sequence.append(None)
+
+        text[i:i+1] = new_tokens
+        app.sequence[i:i+1] = new_sequence
+
+        i += len(new_tokens)
+
+    return [] 
 
 def display(tuple_val):
     for button in buttons:
@@ -116,9 +262,14 @@ def display(tuple_val):
         else:
             button.fill = 'grey'
             
+app.tokens = []
 app.matches = []
+app.sequence = []
 
 def from_device():
+    app.tokens.clear()
+    app.matches.clear()
+    app.sequence.clear()
     result = subprocess.run(
         [sys.executable, "file_helper.py"],
         capture_output=True,
@@ -128,7 +279,9 @@ def from_device():
     text_file_path = output['path']
     if text_file_path:
         text = extract_text(text_file_path)
-        app.matches += match_keys(text,legal_tokens)
+        app.tokens = tokenize(text)
+        app.sequence = [[None]]*len(app.tokens)
+        app.matches += match_keys(app.tokens,legal_tokens)
 
 
 
@@ -146,8 +299,8 @@ def onStep():
     else:
         if(app.mode == 'auto'):
             if(app.index>=0):
-                for j in range(len(app.matches[app.index])):
-                    display(app.matches[app.index][j])
+                for j in range(len(app.tokens[app.index])):
+                    display(app.tokens[app.index][j])
 
 app.mode = 'selecting'
 
@@ -177,16 +330,52 @@ typing_input_button = Rect(0,0,app.width/10, app.height/15, fill='white', border
 typing_input_label = Label("Type Your Input", typing_input_button.centerX, typing_input_button.centerY)
 file_input_button = Rect(app.width,0,app.width/10, app.height/15, fill='white', border = 'black', align = 'top-right')
 file_input_label = Label("Insert File", file_input_button.centerX, file_input_button.centerY)
+play_pause_button = Circle(app.width/2, app.width/40, app.width/40, fill='white', border = 'black')
+play_pause_label = Label("Paused", play_pause_button.centerX, play_pause_button.centerY)
+app.playing = False
+auto_manual_button = Circle(app.width/4, app.width/40, app.width/40, fill='white', border = 'black')
+auto_manual_label = Label("Manual Mode", auto_manual_button.centerX, auto_manual_button.centerY)
+app.displayMode = "Manual"
+
 
 def onMousePress(x,y):
     if(typing_input_button.contains(x,y)):
-        text = app.getTextInput("Enter your text for braille conversion")
-        app.matches+=match_keys(text, legal_tokens)
-        for i in range(len(app.matches)):
-            print(raw[app.matches[i]]["value"]["value"])
+        app.mode = 'typing'
+        app.tokens.clear()
         app.matches.clear()
+        app.sequence.clear()
+        text = app.getTextInput("Enter your text for braille conversion")
+        app.mode = 'chooseSetting'
+        app.tokens+=tokenize(text)
+        app.sequence = [[None]]*len(app.tokens)
+        app.matches+= match_keys(app.tokens, legal_tokens)
+        print(app.sequence)
+        app.tokens.clear()
+        sys.exit(0) ## JUST DURING TESTING
     if(file_input_button.contains(x,y)):
         from_device()
-        print(app.matches)
+        app.mode = 'chooseSetting'
+        print(app.sequence)
+        app.tokens.clear()
+        sys.exit(0) ## JUST DURING TESTING
+    if(play_pause_button.contains(x,y)):
+        if(play_pause_label.value == "Running"):
+            play_pause_label.value = "Paused"
+            app.playing = False
+        else:
+            if(app.displayMode == "Auto"):
+                play_pause_label.value = "Running"
+                app.playing = False
+    if(auto_manual_button.contains(x,y)):
+        if(auto_manual_label.value == "Manual Mode"):
+            auto_manual_label.value = "Auto Mode"
+            app.displayMode = "Auto"
+        else:
+            auto_manual_label.value = "Manual Mode"
+            app.displayMode = "Manual"
+            app.playing = False
+            play_pause_label.value = "Paused"
+
+
 
 app.run()
