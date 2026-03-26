@@ -56,14 +56,13 @@ except ImportError as e:
     
 selected_delay = 45
 app.time_delay = 45
-app.index = -1
+app.wideIndex = -1
 app.pageWidth = 42
 size = pyautogui.size()
 width = size[0]
 height = size[1]
 app.width = width
 app.height = height
-app.autofs = 0
 
 filepath = os.path.abspath(__file__)
 directory_path = os.path.dirname(filepath)
@@ -318,21 +317,24 @@ def from_device():
 
 
 def onStep():
-    if(app.autofs <= 3):
-        app.autofs += 1
-    if(app.autofs == 3):
-        pyautogui.keyDown("command")
-        pyautogui.keyDown('ctrl')
-        pyautogui.press('f')
-        pyautogui.keyUp("command")
-        pyautogui.keyUp("ctrl")
-    if(app.time_delay>0):
-        app.time_delay-=1
-    else:
-        if(app.mode == 'auto'):
-            if(app.index>=0):
-                for j in range(len(app.tokens[app.index])):
-                    display(app.tokens[app.index][j])
+    if(app.playing == True):
+        if(app.time_delay>0):
+            app.time_delay-=1
+        if(app.time_delay == (int)(selected_delay/3)):
+            display([])
+        if(app.time_delay == 0):
+            if(app.mode == 'auto' and app.playing == True):
+                if(len(app.sequence) == 0):
+                    app.mode = 'selecting'
+                if(app.wideIndex>=0):
+                    if(app.wideIndex<len(app.sequence)):
+                        display(app.sequence[app.wideIndex])
+                        app.wideIndex += 1
+                    else:
+                        play_pause_label.value = "Paused"
+                        app.playing = False
+                        display([])
+                    app.time_delay = selected_delay
 
 app.mode = 'selecting'
 
@@ -383,6 +385,14 @@ inc1Label = Label("-10",linesDecrease10Button.centerX, linesIncreaseButton.cente
 inc1Label = Label("Min",linesDecreaseMaxButton.centerX, linesIncreaseButton.centerY)
 
 
+def flatten(lst):
+    duplicate = []
+    for item in lst:
+        for thing in item:
+            duplicate.append(thing)
+    lst.clear()
+    for item in duplicate:
+        lst.append(item)
 
 
 def increase_speed_max():
@@ -447,7 +457,7 @@ def decrease_speed():
     Takes no args and returns no values
     If the game is in screensaver mode, then this will decrease the speed of autoclicks by 1 per minute
     Only take action is speed is not already minimum
-'''
+    '''
     if(app.pageWidth == "Infinite"):
         app.pageWidth = 59
         linesPerPageLabel.value = "Characters per line %d" % app.pageWidth
@@ -455,6 +465,7 @@ def decrease_speed():
         if app.pageWidth>10:
             app.pageWidth-=1
             linesPerPageLabel.value = "Characters per line %d" % app.pageWidth
+          
             
 def check_speed(x,y):
     '''
@@ -476,6 +487,28 @@ def check_speed(x,y):
     if(linesIncreaseMaxButton.contains(x, y)):
         increase_speed_max()
 
+def onKeyPress(key):
+    if(app.mode!='typing'):
+        if(key=="space"):
+            onMousePress(play_pause_button.centerX, play_pause_button.centerY)
+    if(app.mode == "manual"):
+        if(len(app.sequence)>0):
+            if(key == 'left'):
+                if(app.wideIndex>0):
+                    app.wideIndex -=1
+                    display(app.sequence[app.wideIndex])
+                else:
+                    app.wideIndex = -1
+                    display([])
+            if(key =='right'):
+                if(app.wideIndex<len(app.sequence)-1):
+                    app.wideIndex +=1
+                    display(app.sequence[app.wideIndex])
+                else:
+                    app.wideIndex = len(app.sequence)
+                    display([])
+        else:
+            display([])
 
 def onMousePress(x,y):
     check_speed(x,y)
@@ -484,38 +517,51 @@ def onMousePress(x,y):
         app.tokens.clear()
         app.matches.clear()
         app.sequence.clear()
+        app.wideIndex = -1
         text = app.getTextInput("Enter your text for braille conversion")
-        app.mode = 'chooseSetting'
         app.tokens+=tokenize(text)
         app.sequence = [[None]]*len(app.tokens)
         match_keys(app.tokens, legal_tokens)
-        print(text)
-        print(app.sequence)
-        app.tokens.clear()
-        sys.exit(0) ## JUST DURING TESTING
+        flatten(app.sequence)
+        app.mode = 'auto' if auto_manual_label.value == "Auto Mode" else "manual"
+        if(app.mode == 'auto'):
+            app.wideIndex = 0
+        else:
+            app.wideIndex = -1
+        app.tokens.clear()        
     if(file_input_button.contains(x,y)):
         from_device()
-        app.mode = 'chooseSetting'
-        print(app.sequence)
+        flatten(app.sequence)
+        app.wideIndex = 0
+        app.mode = 'auto' if app.displayMode == "Auto" else "manual"
         app.tokens.clear()
-        sys.exit(0) ## JUST DURING TESTING
     if(play_pause_button.contains(x,y)):
         if(play_pause_label.value == "Running"):
             play_pause_label.value = "Paused"
             app.playing = False
         else:
-            if(app.displayMode == "Auto"):
+            if(app.mode == "auto"):
                 play_pause_label.value = "Running"
-                app.playing = False
+                app.playing = True
     if(auto_manual_button.contains(x,y)):
         if(auto_manual_label.value == "Manual Mode"):
             auto_manual_label.value = "Auto Mode"
             app.displayMode = "Auto"
+            if(app.wideIndex>=0):
+                app.wideIndex = app.wideIndex
+            else:
+                app.wideIndex = 0
+            if(app.mode == 'manual'):
+                app.mode = 'auto'
         else:
             auto_manual_label.value = "Manual Mode"
             app.displayMode = "Manual"
             app.playing = False
             play_pause_label.value = "Paused"
+            if(app.wideIndex == 0):
+                app.wideIndex = -1
+            if(app.mode == "auto"):
+                app.mode = 'manual'
 
 
 app.run()
