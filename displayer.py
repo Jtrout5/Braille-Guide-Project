@@ -5,7 +5,6 @@ import zipfile
 import subprocess
 import sys
 import re
-from tkinter import Tk, filedialog
 
 try:
     import pdfplumber
@@ -308,7 +307,6 @@ def from_device():
     if text_file_path:
         text = extract_text(text_file_path)
         app.tokens = tokenize(text)
-        app.sequence = [[None]]*len(app.tokens)
         match_keys(app.tokens,legal_tokens)
 
 
@@ -517,7 +515,6 @@ def onMousePress(x,y):
         app.wideIndex = -1
         text = app.getTextInput("Enter your text for braille conversion")
         app.tokens+=tokenize(text)
-        app.sequence = [[None]]*len(app.tokens)
         match_keys(app.tokens, legal_tokens)
         flatten(app.sequence)
         app.mode = 'auto' if auto_manual_label.value == "Auto Mode" else "manual"
