@@ -2,7 +2,6 @@ import json
 
 
 lowercase = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-uppercase = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 punctuation = ["!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "{", "}", "°", " "]
 digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 alpha_wordsigns = ["but", "can", "do", "every", "from", "go", "have", "just", "knowledge", "like", "more", "not", "people", "quite", "rather", "so", "that", "us", "very", "will", "it", "you", "as"]
@@ -18,7 +17,6 @@ final_letter_groupsigns = ["ound", "ance", "sion", "less", "ount", "ence", "ong"
 
 categories = {
     "lowercase": lowercase,
-    "uppercase": uppercase,
     "punctuation": punctuation,
     "digits": digits,
     "alpha_wordsigns": alpha_wordsigns,
@@ -61,32 +59,6 @@ braille = {
 "x": {"type": "lowercase", "value": [(1,3,4,6)]},
 "y": {"type": "lowercase", "value": [(1,3,4,5,6)]},
 "z": {"type": "lowercase", "value": [(1,3,5,6)]},
-"A": {"type": "uppercase", "value": [(6,), (1,)]},
-"B": {"type": "uppercase", "value": [(6,), (1,2)]},
-"C": {"type": "uppercase", "value": [(6,), (1,4)]},
-"D": {"type": "uppercase", "value": [(6,), (1,4,5)]},
-"E": {"type": "uppercase", "value": [(6,), (1,5)]},
-"F": {"type": "uppercase", "value": [(6,), (1,2,4)]},
-"G": {"type": "uppercase", "value": [(6,), (1,2,4,5)]},
-"H": {"type": "uppercase", "value": [(6,), (1,2,5)]},
-"I": {"type": "uppercase", "value": [(6,), (2,4)]},
-"J": {"type": "uppercase", "value": [(6,), (2,4,5)]},
-"K": {"type": "uppercase", "value": [(6,), (1,3)]},
-"L": {"type": "uppercase", "value": [(6,), (1,2,3)]},
-"M": {"type": "uppercase", "value": [(6,), (1,3,4)]},
-"N": {"type": "uppercase", "value": [(6,), (1,3,4,5)]},
-"O": {"type": "uppercase", "value": [(6,), (1,3,5)]},
-"P": {"type": "uppercase", "value": [(6,), (1,2,3,4)]},
-"Q": {"type": "uppercase", "value": [(6,), (1,2,3,4,5)]},
-"R": {"type": "uppercase", "value": [(6,), (1,2,3,5)]},
-"S": {"type": "uppercase", "value": [(6,), (2,3,4)]},
-"T": {"type": "uppercase", "value": [(6,), (2,3,4,5)]},
-"U": {"type": "uppercase", "value": [(6,), (1,3,6)]},
-"V": {"type": "uppercase", "value": [(6,), (1,2,3,6)]},
-"W": {"type": "uppercase", "value": [(6,), (2,4,5,6)]},
-"X": {"type": "uppercase", "value": [(6,), (1,3,4,6)]},
-"Y": {"type": "uppercase", "value": [(6,), (1,3,4,5,6)]},
-"Z": {"type": "uppercase", "value": [(6,), (1,3,5,6)]},
 "1": {"type": "digits", "value": [(1,)]},
 "2": {"type": "digits", "value": [(1,2)]},
 "3": {"type": "digits", "value": [(1,4)]},
