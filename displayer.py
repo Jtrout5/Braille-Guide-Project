@@ -229,11 +229,11 @@ def match_keys(text, keys):
 
         _, seq_list, split_list, key_list = dp[0]
 
-        if token[0].isupper():
-            for idx, seq in enumerate(seq_list):
-                if seq is not None:
-                    seq_list[idx] = [[6]] + seq
-                    break
+        # if token[0].isupper():
+        #     for idx, seq in enumerate(seq_list):
+        #         if seq is not None:
+        #             seq_list[idx] = [[6]] + seq
+        #             break
 
         text[i:i+1] = split_list
         app.sequence[i:i+1] = seq_list
@@ -288,8 +288,8 @@ def match_keys(text, keys):
             low = ch.lower()
             if low in leftover_letters:
                 val = raw[low]["value"]
-                if ch.isupper():
-                    val = [[6]] + val
+                # if ch.isupper():
+                #     val = [[6]] + val
                 new_tokens.append(ch)
                 new_seq.append(val)
                 new_matches.append(match_case(low, ch))
@@ -303,6 +303,15 @@ def match_keys(text, keys):
         app.matches[i:i+1] = new_matches
 
         i += len(new_tokens)
+
+    for i, token in enumerate(text):
+        seq = app.sequence[i]
+
+        if token is None or seq is None:
+            continue
+
+        if token[0].isupper():
+            app.sequence[i] = [[6]] + seq
 
 def show_print(text):
     printed_version.value = text
@@ -553,13 +562,8 @@ def onMousePress(x,y):
         app.wideIndex = -1
         text = app.getTextInput("Enter your text for braille conversion")
         app.tokens+=tokenize(text)
-        print(app.tokens)
         match_keys(app.tokens, legal_tokens)
-        print(app.sequence)
-        print(app.matches)
         paired_expansion(app.sequence, app.matches)
-        print(app.sequence)
-        print(app.matches)
         app.mode = 'auto' if auto_manual_label.value == "Auto Mode" else "manual"
         if(app.mode == 'auto'):
             app.wideIndex = 0
