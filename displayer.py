@@ -109,6 +109,13 @@ def tokenize(txt):
     tokens = re.findall(r"[A-Za-z0-9]+|[^\w\s]| ", txt)
     return tokens
 
+def match_case(key, token):
+    if token.isupper():
+        return key.upper()
+    elif token[0].isupper():
+        return key.capitalize()
+    else:
+        return key
 
 def match_keys(text, keys):
     alpha_wordsigns = [k for k in keys if raw[k]["type"] == "alpha_wordsigns"]
@@ -132,6 +139,7 @@ def match_keys(text, keys):
     digits = [k for k in keys if raw[k]["type"] == "digits"]
 
     app.sequence = [None] * len(text)
+    app.matches = [None] * len(text)
 
     for i, token in enumerate(text):
         if token is None:
@@ -139,6 +147,7 @@ def match_keys(text, keys):
         for key in punctuation:
             if token == key:
                 app.sequence[i] = raw[key]["value"]
+                app.matches[i] = key
                 text[i] = None
                 break
             
@@ -151,6 +160,7 @@ def match_keys(text, keys):
                 if token[0].isupper():
                     val = [[6]] + val
                 app.sequence[i] = val
+                app.matches[i] = match_case(key, token)
                 text[i] = None
                 break
 
@@ -163,6 +173,7 @@ def match_keys(text, keys):
                 if token[0].isupper():
                     val = [[6]] + val
                 app.sequence[i] = val
+                app.matches[i] = match_case(key, token)
                 text[i] = None
                 break
 
@@ -178,26 +189,30 @@ def match_keys(text, keys):
         n = len(token)
 
         dp = [None] * (n + 1)
-        dp[n] = (0, [], [])
+        dp[n] = (0, [], [], [])
 
         for pos in range(n - 1, -1, -1):
             best_cells = float("inf")
             best_seq = None
             best_split = None
+            best_keys = None
 
-            next_cells, next_seq, next_split = dp[pos + 1]
+            next_cells, next_seq, next_split, next_keys = dp[pos + 1]
             fallback_cells = next_cells + 1
             fallback_seq = [None] + next_seq
+            fallback_keys = [None] + next_keys
             fallback_split = [token[pos]] + next_split
+            
 
             best_cells = fallback_cells
             best_seq = fallback_seq
             best_split = fallback_split
+            best_keys = fallback_keys
 
             for key in groupsigns:
                 if lower.startswith(key, pos):
                     end = pos + len(key)
-                    next_cells, next_seq, next_split = dp[end]
+                    next_cells, next_seq, next_split, next_keys = dp[end]
 
                     val = raw[key]["value"]
                     cell_count = len(val)
@@ -207,10 +222,12 @@ def match_keys(text, keys):
                         best_cells = total
                         best_seq = [val] + next_seq
                         best_split = [token[pos:end]] + next_split
+                        segment = token[pos:end]
+                        best_keys = [match_case(key, segment)] + next_keys
 
-            dp[pos] = (best_cells, best_seq, best_split)
+            dp[pos] = (best_cells, best_seq, best_split, best_keys)
 
-        _, seq_list, split_list = dp[0]
+        _, seq_list, split_list, key_list = dp[0]
 
         if token[0].isupper():
             for idx, seq in enumerate(seq_list):
@@ -220,6 +237,7 @@ def match_keys(text, keys):
 
         text[i:i+1] = split_list
         app.sequence[i:i+1] = seq_list
+        app.matches[i:i+1] = key_list
 
         i += len(split_list)
         
@@ -244,6 +262,7 @@ def match_keys(text, keys):
                 digit_seq.append(raw[ch]["value"])
 
             app.sequence[i] = digit_seq
+            app.matches[i] = token
             text[i] = None
 
         else:
@@ -263,6 +282,7 @@ def match_keys(text, keys):
 
         new_tokens = []
         new_seq = []
+        new_matches = []
 
         for ch in token:
             low = ch.lower()
@@ -272,14 +292,20 @@ def match_keys(text, keys):
                     val = [[6]] + val
                 new_tokens.append(ch)
                 new_seq.append(val)
+                new_matches.append(match_case(low, ch))
             else:
                 new_tokens.append(ch)
                 new_seq.append(None)
+                new_matches.append(None)
 
         text[i:i+1] = new_tokens
         app.sequence[i:i+1] = new_seq
+        app.matches[i:i+1] = new_matches
 
         i += len(new_tokens)
+
+def show_print(text):
+    printed_version.value = text
 
 
 def display(tuple_val):
@@ -309,8 +335,6 @@ def from_device():
         app.tokens = tokenize(text)
         match_keys(app.tokens,legal_tokens)
 
-
-
 def onStep():
     if(app.playing == True):
         if(app.time_delay>0):
@@ -324,11 +348,13 @@ def onStep():
                 if(app.wideIndex>=0):
                     if(app.wideIndex<len(app.sequence)):
                         display(app.sequence[app.wideIndex])
+                        show_print(app.matches[app.wideIndex])
                         app.wideIndex += 1
                     else:
                         play_pause_label.value = "Paused"
                         app.playing = False
                         display([])
+                        show_print("")
                     app.time_delay = selected_delay
 
 app.mode = 'selecting'
@@ -378,16 +404,23 @@ inc3Label = Label("Max",linesIncreaseMaxButton.centerX, linesIncreaseButton.cent
 inc4Label = Label("-1",linesDecreaseButton.centerX, linesIncreaseButton.centerY)
 inc5Label = Label("-10",linesDecrease10Button.centerX, linesIncreaseButton.centerY)
 inc6Label = Label("Min",linesDecreaseMaxButton.centerX, linesIncreaseButton.centerY)
+printed_version = Label("", buttons.centerX, app.height/4,size = app.width/40)
 
 
-def flatten(lst):
-    duplicate = []
-    for item in lst:
+def paired_expansion(lst1, lst2):
+    duplicate1 = []
+    duplicate2 = []
+    idx = 0
+    for item in lst1:
         for thing in item:
-            duplicate.append(thing)
-    lst.clear()
-    for item in duplicate:
-        lst.append(item)
+            duplicate1.append(thing)
+            duplicate2.append(lst2[idx])
+        idx+=1
+    lst1.clear()
+    lst2.clear()
+    for i in range(len(duplicate1)):
+        lst1.append(duplicate1[i])
+        lst2.append(duplicate2[i])
 
 
 def increase_speed_max():
@@ -492,18 +525,23 @@ def onKeyPress(key):
                 if(app.wideIndex>0):
                     app.wideIndex -=1
                     display(app.sequence[app.wideIndex])
+                    show_print(app.matches[app.wideIndex])
                 else:
                     app.wideIndex = -1
                     display([])
+                    show_print("")
             if(key =='right'):
                 if(app.wideIndex<len(app.sequence)-1):
                     app.wideIndex +=1
                     display(app.sequence[app.wideIndex])
+                    show_print(app.matches[app.wideIndex])
                 else:
                     app.wideIndex = len(app.sequence)
                     display([])
+                    show_print("")
         else:
             display([])
+            show_print("")
 
 def onMousePress(x,y):
     check_speed(x,y)
@@ -515,8 +553,13 @@ def onMousePress(x,y):
         app.wideIndex = -1
         text = app.getTextInput("Enter your text for braille conversion")
         app.tokens+=tokenize(text)
+        print(app.tokens)
         match_keys(app.tokens, legal_tokens)
-        flatten(app.sequence)
+        print(app.sequence)
+        print(app.matches)
+        paired_expansion(app.sequence, app.matches)
+        print(app.sequence)
+        print(app.matches)
         app.mode = 'auto' if auto_manual_label.value == "Auto Mode" else "manual"
         if(app.mode == 'auto'):
             app.wideIndex = 0
@@ -525,7 +568,7 @@ def onMousePress(x,y):
         app.tokens.clear()        
     if(file_input_button.contains(x,y)):
         from_device()
-        flatten(app.sequence)
+        paired_expansion(app.sequence, app.matches)
         app.wideIndex = 0
         app.mode = 'auto' if app.displayMode == "Auto" else "manual"
         app.tokens.clear()
