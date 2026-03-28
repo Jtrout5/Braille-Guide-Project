@@ -316,8 +316,15 @@ def match_keys(text, keys):
 def show_print(text):
     printed_version.value = text
 
+def show_braille(tuple_val):
+    for dot in dots:
+        if dot.id in tuple_val:
+            dot.fill='black'
+        else:
+            dot.fill = None
 
 def display(tuple_val):
+    show_braille(tuple_val)
     for button in buttons:
         if button.id in tuple_val:
             button.fill = 'lime'
@@ -369,6 +376,7 @@ def onStep():
 app.mode = 'selecting'
 
 buttons = Group()
+dots = Group()
 
 def create_button(locX, id):
     if(id == 'space'):
@@ -414,6 +422,13 @@ inc4Label = Label("-1",linesDecreaseButton.centerX, linesIncreaseButton.centerY)
 inc5Label = Label("-10",linesDecrease10Button.centerX, linesIncreaseButton.centerY)
 inc6Label = Label("Min",linesDecreaseMaxButton.centerX, linesIncreaseButton.centerY)
 printed_version = Label("", buttons.centerX, app.height/4,size = app.width/40)
+
+for i in range(1,7,1):
+    offsetX = -15 if i<4 else 15
+    offsetY = 0 if i%3 == 1 else 30 if i%3 == 2 else 60
+    new = Circle((app.width/2 + offsetX), (app.height/3 + offsetY), 10, fill = None, border = 'grey', borderWidth = 0.5)
+    new.id = i
+    dots.add(new)
 
 
 def paired_expansion(lst1, lst2):
