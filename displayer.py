@@ -652,6 +652,12 @@ def onMousePress(x,y):
             app.cpm-=1
             app.selected_delay = (int)(app.stepsPerSecond*60/app.cpm)
             cpm_label.value = ("%d cells per minute (Auto Mode)") %app.cpm
+    if(app.mode == 'checking'):
+        if(app.updateButton.contains(x,y)):
+            download_and_update()
+        if(app.noUpdateButton.contains(x,y)):
+            updateGUI.clear()
+            app.mode = 'selecting'
 
 
 github_version_file = "https://raw.githubusercontent.com/Jtrout5/Braille-Guide-Project/main/version.txt"
@@ -770,4 +776,5 @@ def check_for_updates():
 
 
 check_for_updates()
+updateGUI.toFront()
 app.run()

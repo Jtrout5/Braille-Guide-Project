@@ -13,3 +13,8 @@ Several feature updates to displayer:
      Speed control (measured in cells per minute) has been added and users can now control this speed themselves. Minumum speed is 10 cells per minute. If users want a slower speed, they should use manual mode. Maximum speed is 120 cells per minute, and will only be used by advanced braille users. I am open to increasing this limit by request in the future. 
 
     Page width is handled currently, in that reaching the right edge of the page (width defined by user) will prompt user to go to next line in both auto and manual mode. Similar to encountering the newline character. This feature will be expanded upon to warn users in advance that given their current page width, the next word is too long and they should move to next line, but that feature doesn't exist yet
+
+
+1.0.2 Release
+
+Fixed a bug leading to buttons relating to updates not being clickable
