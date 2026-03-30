@@ -684,7 +684,6 @@ def is_newer(remote, local):
     return parse(remote) > parse(local)
 
 def download_and_update():
-    os.chdir("..")
 
     r = requests.get(repo_zip)
     z = zipfile.ZipFile(BytesIO(r.content))
