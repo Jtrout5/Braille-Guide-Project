@@ -58,7 +58,6 @@ default_delay = 45
 app.cpm = (app.stepsPerSecond*60/default_delay) 
 app.selected_delay = (app.stepsPerSecond*60)/app.cpm
 app.cellsSinceLastNewLine = 0
-print(app.selected_delay)
 app.time_delay = 45
 app.wideIndex = -1
 app.pageWidth = 42
