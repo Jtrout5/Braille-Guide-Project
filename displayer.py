@@ -53,8 +53,12 @@ except ImportError as e:
     os.remove(output_filename)
     shutil.rmtree("cmu_graphics_installer")
     from cmu_graphics import *
-    
-selected_delay = 45
+
+default_delay = 45    
+app.cpm = (app.stepsPerSecond*60/default_delay) 
+app.selected_delay = (app.stepsPerSecond*60)/app.cpm
+app.cellsSinceLastNewLine = 0
+print(app.selected_delay)
 app.time_delay = 45
 app.wideIndex = -1
 app.pageWidth = 42
@@ -107,7 +111,7 @@ def extract_text(path):
 
 
 def tokenize(txt):
-    tokens = re.findall(r"[A-Za-z0-9]+|[^\w\s]| ", txt)
+    tokens = re.findall(r"[A-Za-z0-9]+|[^\w\s]| |\n", txt)
     return tokens
 
 def match_case(key, token):
@@ -309,6 +313,10 @@ def match_keys(text, keys):
 
 def show_print(text):
     printed_version.value = text
+    if(text == "\n"):
+        app.cellsSinceLastNewLine = 0
+        printed_version.value = "*Go to next line*"
+        app.time_delay = (int)(app.stepsPerSecond * 3.5)
 
 def show_braille(tuple_val):
     for dot in dots:
@@ -349,23 +357,24 @@ def onStep():
     if(app.playing == True):
         if(app.time_delay>0):
             app.time_delay-=1
-        if(app.time_delay == (int)(selected_delay/3)):
+        if(app.time_delay == (int)(app.selected_delay/3)):
             display([])
         if(app.time_delay == 0):
             if(app.mode == 'auto' and app.playing == True):
+                app.time_delay = app.selected_delay
                 if(len(app.sequence) == 0):
                     app.mode = 'selecting'
-                if(app.wideIndex>=0):
+                if(app.wideIndex>= -1):
                     if(app.wideIndex<len(app.sequence)):
+                        app.wideIndex += 1
+                        app.cellsSinceLastNewLine += 1
                         display(app.sequence[app.wideIndex])
                         show_print(app.matches[app.wideIndex])
-                        app.wideIndex += 1
                     else:
                         play_pause_label.value = "Paused"
                         app.playing = False
                         display([])
                         show_print("")
-                    app.time_delay = selected_delay
 
 app.mode = 'selecting'
 
@@ -397,13 +406,13 @@ typing_input_button = Rect(0,0,app.width/10, app.height/15, fill='white', border
 typing_input_label = Label("Type Your Input", typing_input_button.centerX, typing_input_button.centerY)
 file_input_button = Rect(app.width,0,app.width/10, app.height/15, fill='white', border = 'black', align = 'top-right')
 file_input_label = Label("Insert File", file_input_button.centerX, file_input_button.centerY)
-play_pause_button = Circle(app.width/2, app.width/40, app.width/40, fill='white', border = 'black')
+play_pause_button = Circle(7 * app.width/16, app.width/40, app.width/40, fill='white', border = 'black')
 play_pause_label = Label("Paused", play_pause_button.centerX, play_pause_button.centerY)
 app.playing = False
-auto_manual_button = Circle(app.width/4, app.width/40, app.width/40, fill='white', border = 'black')
+auto_manual_button = Circle(3*app.width/8, app.width/40, app.width/40, fill='white', border = 'black')
 auto_manual_label = Label("Manual Mode", auto_manual_button.centerX, auto_manual_button.centerY)
 app.displayMode = "Manual"
-linesPerPageLabel = Label("Characters per line: %d" %app.pageWidth, 3*app.width/4, app.height/40, size = app.width/50)
+linesPerPageLabel = Label("Characters per line: %d" %app.pageWidth, 9*app.width/40, app.height/40, size = app.width/50)
 linesIncreaseButton = Rect(linesPerPageLabel.centerX+1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black')
 linesIncrease10Button = Rect(linesIncreaseButton.right+1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black')
 linesIncreaseMaxButton = Rect(linesIncrease10Button.right+1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black')
@@ -417,6 +426,12 @@ inc4Label = Label("-1",linesDecreaseButton.centerX, linesIncreaseButton.centerY)
 inc5Label = Label("-10",linesDecrease10Button.centerX, linesIncreaseButton.centerY)
 inc6Label = Label("Min",linesDecreaseMaxButton.centerX, linesIncreaseButton.centerY)
 printed_version = Label("", buttons.centerX, app.height/4,size = app.width/40)
+cpm_label = Label("%d cells per minute (Auto Mode)" %app.cpm, file_input_button.left - (3*app.width/16), file_input_button.centerY, size = app.width/60)
+increase_cpm_button = Rect(cpm_label.right+10, cpm_label.centerY, app.width/30, app.width/40, fill="white", border = 'black', align = 'left')
+decrease_cpm_button = Rect(cpm_label.left-10, cpm_label.centerY, app.width/30, app.width/40, fill='white', border = 'black', align = 'right')
+increase_cpm_label = Label("Increase", increase_cpm_button.centerX, increase_cpm_button.centerY)
+decrease_cpm_label = Label("Decrease", decrease_cpm_button.centerX, decrease_cpm_button.centerY)
+
 
 for i in range(1,7,1):
     offsetX = -15 if i<4 else 15
@@ -538,29 +553,50 @@ def onKeyPress(key):
     if(app.mode!='typing'):
         if(key=="space"):
             onMousePress(play_pause_button.centerX, play_pause_button.centerY)
-    if(app.mode == "manual"):
-        if(len(app.sequence)>0):
-            if(key == 'left'):
-                if(app.wideIndex>0):
-                    app.wideIndex -=1
-                    display(app.sequence[app.wideIndex])
-                    show_print(app.matches[app.wideIndex])
-                else:
-                    app.wideIndex = -1
+    if(len(app.sequence)>0):
+        if(key == 'left'):
+            app.time_delay = app.selected_delay
+            if(app.wideIndex>0):
+                app.wideIndex -=1
+                app.cellsSinceLastNewLine -=1
+                display(app.sequence[app.wideIndex])
+                show_print(app.matches[app.wideIndex])
+            else:
+                app.wideIndex = -1
+                app.cellsSinceLastNewLine = 0
+                display([])
+                show_print("")
+        if(key =='right'):
+            if(app.pageWidth!= "Infinite"):
+                if(app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine != 0):
                     display([])
-                    show_print("")
-            if(key =='right'):
+                    show_print("\n")
+                    app.cellsSinceLastNewLine = 0
+                else:
+                    app.time_delay = app.selected_delay
+                    if(app.wideIndex<len(app.sequence)-1):
+                        app.wideIndex +=1
+                        app.cellsSinceLastNewLine +=1
+                        display(app.sequence[app.wideIndex])
+                        show_print(app.matches[app.wideIndex])
+                    else:
+                        app.wideIndex = len(app.sequence)
+                        display([])
+                        show_print("")
+            else:
+                app.time_delay = app.selected_delay
                 if(app.wideIndex<len(app.sequence)-1):
                     app.wideIndex +=1
+                    app.cellsSinceLastNewLine +=1
                     display(app.sequence[app.wideIndex])
                     show_print(app.matches[app.wideIndex])
                 else:
                     app.wideIndex = len(app.sequence)
                     display([])
                     show_print("")
-        else:
-            display([])
-            show_print("")
+    else:
+        display([])
+        show_print("")
 
 def onMousePress(x,y):
     check_speed(x,y)
@@ -575,16 +611,12 @@ def onMousePress(x,y):
         match_keys(app.tokens, legal_tokens)
         paired_expansion(app.sequence, app.matches)
         app.mode = 'auto' if auto_manual_label.value == "Auto Mode" else "manual"
-        if(app.mode == 'auto'):
-            app.wideIndex = 0
-        else:
-            app.wideIndex = -1
         app.tokens.clear()        
     if(file_input_button.contains(x,y)):
         from_device()
         paired_expansion(app.sequence, app.matches)
-        app.wideIndex = 0
         app.mode = 'auto' if app.displayMode == "Auto" else "manual"
+        app.wideIndex = -1
         app.tokens.clear()
     if(play_pause_button.contains(x,y)):
         if(play_pause_label.value == "Running"):
@@ -598,10 +630,6 @@ def onMousePress(x,y):
         if(auto_manual_label.value == "Manual Mode"):
             auto_manual_label.value = "Auto Mode"
             app.displayMode = "Auto"
-            if(app.wideIndex>=0):
-                app.wideIndex = app.wideIndex
-            else:
-                app.wideIndex = 0
             if(app.mode == 'manual'):
                 app.mode = 'auto'
         else:
@@ -609,10 +637,18 @@ def onMousePress(x,y):
             app.displayMode = "Manual"
             app.playing = False
             play_pause_label.value = "Paused"
-            if(app.wideIndex == 0):
-                app.wideIndex = -1
             if(app.mode == "auto"):
                 app.mode = 'manual'
+    if(increase_cpm_button.contains(x,y)):
+        if(app.cpm<120):
+            app.cpm+=1
+            app.selected_delay = (int)(app.stepsPerSecond*60/app.cpm)
+            cpm_label.value = ("%d cells per minute (Auto Mode)") %app.cpm
+    if(decrease_cpm_button.contains(x,y)):
+        if(app.cpm>10):
+            app.cpm-=1
+            app.selected_delay = (int)(app.stepsPerSecond*60/app.cpm)
+            cpm_label.value = ("%d cells per minute (Auto Mode)") %app.cpm
 
 
 github_version_file = "https://raw.githubusercontent.com/Jtrout5/Braille-Guide-Project/main/version.txt"
@@ -673,7 +709,7 @@ file_path = os.path.abspath(__file__)
 directory_path = os.path.dirname(file_path)
 os.chdir(directory_path)
 
-PROJECT_ROOT = "{directory_path}"
+PROJECT_ROOT = directory_path
 TEMP_DIR = "{temp_dir}"
 EXTRACTED = "{extracted_root}"
 DISPLAYER = "displayer.py"
@@ -730,5 +766,5 @@ def check_for_updates():
         return
 
 
-
+check_for_updates()
 app.run()

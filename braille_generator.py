@@ -6,7 +6,7 @@ This docstring is here to show the categories that each braille key fit in to. S
 Example: "in" fits into several categories but I had to place it in one category to allow my software to work.
 
 # lowercase = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-# punctuation = ["!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "{", "}", "°", " "]
+# punctuation = ["!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "{", "}", "°", " ", "\n"]
 # digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 # alpha_wordsigns = ["but", "can", "do", "every", "from", "go", "have", "just", "knowledge", "like", "more", "not", "people", "quite", "rather", "so", "that", "us", "very", "will", "it", "you", "as"]
 # initial_letter_contractions = ["day", "ever", "father", "here", "know", "lord", "mother", "name", "one", "part", "question", "right", "some", "time", "under", "work", "young", "there", "character", "through", "where", "ought", "upon", "word", "these", "those", "whose", "cannot", "had", "many", "spirit", "world", "their"]
@@ -15,7 +15,7 @@ Example: "in" fits into several categories but I had to place it in one category
 # strong_wordsigns = ["child","shall","this","which","out","still"]
 # lower_wordsigns = ["be","enough","were","his","was"]
 # lower_groupsigns = ["ea", "bb", "cc", "ff", "gg", "be", "con", "dis", "en"]
-# shortform_words = ["about", "above", "according", "across", "after", "afternoon", "afterward", "again", "against", "almost", "already", "also", "although", "altogether", "always", "because", "before", "behind", "below", "beneath", "beside", "between", "beyond", "blind", "braille", "children", "could", "deceive", "declare", "either", "first", "friend", "good", "great", "herself", "him", "himself", "immediate", "its", "itself", "letter", "little", "much", "must", "myself", "necessary", "neither", "oneself", "ourselves", "paid", "perceive", "perhaps", "quick", "receive", "said", "should", "such", "themselves", "today", "together", "tomorrow", "tonight", "would", "your", "yourself", "yourselves"]
+# shortform_words = ["about", "above", "according", "across", "after", "afternoon", "afterward", "again", "against", "almost", "already", "also", "although", "altogether", "always", "because", "before", "behind", "below", "beneath", "beside", "between", "beyond", "blind", "braille", "children", "conceive", "conceiving", "could", "deceive", "deceiving", "declare", "declaring", "either", "first", "friend", "good", "great", "herself", "him", "himself", "immediate", "its", "itself", "letter", "little", "much", "must", "myself", "necessary", "neither", "oneself", "ourselves", "paid", "perceive", "perceiving", "perhaps", "quick", "receive", "receiving", "rejoice", "rejoicing", "said", "should", "such", "themselves", "thyself", "today", "together", "tomorrow", "tonight", "would", "your", "yourself", "yourselves"]
 # final_letter_groupsigns = ["ound", "ance", "sion", "less", "ount", "ence", "ong", "ful", "tion", "ness", "ment", "ity"]
 '''
 
@@ -88,6 +88,7 @@ braille = {
 "}":  {"type": "punctuation", "value": [(4,5,6),(3,4,5)]}, 
 "°":  {"type": "punctuation", "value": [(4,5),(2,4,5)]}, 
 " ":  {"type": "punctuation", "value": [("space",)]},
+"\n": {"type": "punctuation", "value": [("Newline",)]},
 "ch": {"type": "strong_groupsigns", "value": [(1,6)]},
 "sh": {"type": "strong_groupsigns", "value": [(1,4,6)]},
 "th": {"type": "strong_groupsigns", "value": [(1,4,5,6)]},
@@ -183,11 +184,15 @@ braille = {
 "blind":       {"type": "shortform_words", "value": [(1,2), (1,2,3)]}, 
 "braille":     {"type": "shortform_words", "value": [(1,2),(1,2,3,5),(1,2,3)]}, 
 "children":    {"type": "shortform_words", "value": [(1,6), (1,3,4,5)]}, 
+"conceive":    {"type": "shortform_words", "value": [(2,5), (1,4), (1,2,3,6)]},
+"conceiving":  {"type": "shortform_words", "value": [(2,5), (1,4), (1,2,3,6), (1,2,4,5)]},
 "could":       {"type": "shortform_words", "value": [(1,4),(1,4,5)]}, 
 "deceive":     {"type": "shortform_words", "value": [(1,4,5), (1,4), (1,2,3,6)]}, 
+"deceiving":   {"type": "shortform_words", "value": [(1,4,5), (1,4), (1,2,3,6), (1,2,4,5)]},
 "declare":     {"type": "shortform_words", "value": [(1,4,5), (1,4), (1,2,3)]}, 
+"declaring":   {"type": "shortform_words", "value": [(1,4,5), (1,4), (1,2,3), (1,2,4,5)]}, 
 "either":      {"type": "shortform_words", "value": [(1,5), (2,4)]},
-"first":      {"type": "shortform_words", "value":  [(1,2,4),(3,4)]}, 
+"first":       {"type": "shortform_words", "value":  [(1,2,4),(3,4)]}, 
 "friend":      {"type": "shortform_words", "value": [(1,2,4), (1,2,3,5)]},
 "good":        {"type": "shortform_words", "value": [(1,2,4,5), (1,4,5)]},
 "great":       {"type": "shortform_words", "value": [(1,2,4,5), (1,2,3,5),(2,3,4,5)]},
@@ -208,13 +213,18 @@ braille = {
 "ourselves":   {"type": "shortform_words", "value": [(1,2,5,6), (1,2,3,5),(1,2,3,6),(2,3,4)]},
 "paid":        {"type": "shortform_words", "value": [(1,2,3,4), (1,4,5)]}, 
 "perceive":    {"type": "shortform_words", "value": [(1,2,3,4), (1,2,4,5,6),(1,4),(1,2,3,6)]},
+"perceiving":  {"type": "shortform_words", "value": [(1,2,3,4), (1,2,4,5,6), (1,4), (1,2,3,6),(1,2,4,6)]}, 
 "perhaps":     {"type": "shortform_words", "value": [(1,2,3,4), (1,2,4,5,6),(1,2,5)]}, 
 "quick":       {"type": "shortform_words", "value": [(1,2,3,4,5), (1,3)]}, 
 "receive":     {"type": "shortform_words", "value": [(1,2,3,5), (1,4),(1,2,3,6)]}, 
+"receiving":   {"type": "shortform_words", "value": [(1,2,3,5), (1,4), (1,2,3,6), (1,2,4,5)]},
+"rejoice":     {"type": "shortform_words", "value": [(1,2,3,5), (2,4,5), (1,4)]},
+"rejoicing":   {"type": "shortform_words", "value": [(1,2,3,5), (2,4,5), (1,4), (1,2,4,5)]},
 "said":        {"type": "shortform_words", "value": [(2,3,4), (1,4,5)]},
 "should":      {"type": "shortform_words", "value": [(1,4,6), (1,4,5)]},
 "such":        {"type": "shortform_words", "value": [(2,3,4), (1,6)]}, 
 "themselves":  {"type": "shortform_words", "value": [(2,3,4,6), (1,3,4),(1,2,3,6),(2,3,4)]}, 
+"thyself":     {"type": "shortform_words", "value": [(1,4,5,6), (1,3,4,5,6), (1,2,4)]},
 "today":       {"type": "shortform_words", "value": [(2,3,4,5), (1,4,5)]}, 
 "together":    {"type": "shortform_words", "value": [(2,3,4,5), (1,2,4,5),(1,2,3,5)]}, 
 "tomorrow":    {"type": "shortform_words", "value": [(2,3,4,5), (1,3,4)]}, 
