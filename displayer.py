@@ -367,8 +367,12 @@ def onStep():
                     if(app.wideIndex<len(app.sequence)):
                         app.wideIndex += 1
                         app.cellsSinceLastNewLine += 1
-                        display(app.sequence[app.wideIndex])
-                        show_print(app.matches[app.wideIndex])
+                        if(app.wideIndex<len(app.sequence)):
+                            display(app.sequence[app.wideIndex])
+                            show_print(app.matches[app.wideIndex])
+                        else:
+                            display([])
+                            show_print("")
                     else:
                         play_pause_label.value = "Paused"
                         app.playing = False
