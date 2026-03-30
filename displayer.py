@@ -676,7 +676,7 @@ os.chdir(directory_path)
 PROJECT_ROOT = "Braille-Guide-Project"
 TEMP_DIR = "{temp_dir}"
 EXTRACTED = "{extracted_root}"
-LAUNCHER = "displayer.py"
+DISPLAYER = "displayer.py"
 
 time.sleep(1)
 
@@ -697,18 +697,9 @@ for item in os.listdir(EXTRACTED):
     else:
         shutil.copy2(src, dst)
 
-for game, saved_path in preserved.items():
-    new_game_path = os.path.join(PROJECT_ROOT, "apps", game)
-    new_files_path = os.path.join(new_game_path, "Files")
-
-    if os.path.exists(new_game_path):
-        if os.path.exists(new_files_path):
-            shutil.rmtree(new_files_path)
-        shutil.copytree(saved_path, new_files_path)
-
 shutil.rmtree(TEMP_DIR)
 
-subprocess.Popen([sys.executable, os.path.join(PROJECT_ROOT, LAUNCHER)])
+subprocess.Popen([sys.executable, os.path.join(PROJECT_ROOT, DISPLAYER)])
 
 os.remove("run_update.py")
 """)
