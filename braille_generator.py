@@ -1,36 +1,23 @@
 import json
 
 
-lowercase = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-punctuation = ["!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "{", "}", "°", " "]
-digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-alpha_wordsigns = ["but", "can", "do", "every", "from", "go", "have", "just", "knowledge", "like", "more", "not", "people", "quite", "rather", "so", "that", "us", "very", "will", "it", "you", "as"]
-initial_letter_contractions = ["day", "ever", "father", "here", "know", "lord", "mother", "name", "one", "part", "question", "right", "some", "time", "under", "work", "young", "there", "character", "through", "where", "ought", "upon", "word", "these", "those", "whose", "cannot", "had", "many", "spirit", "world", "their"]
-strong_groupsigns = ["ch", "sh", "th", "wh", "ou", "st", "gh", "ed", "er", "ow", "ar", "in"]
-strong_contraction = ["and", "for", "of", "the", "with"]
-strong_wordsigns = ["child","shall","this","which","out","still"]
-lower_wordsigns = ["be","enough","were","his","was"]
-lower_groupsigns = ["ea", "bb", "cc", "ff", "gg", "be", "con", "dis", "en"]
-shortform_words = ["about", "above", "according", "across", "after", "afternoon", "afterward", "again", "against", "almost", "already", "also", "although", "altogether", "always", "because", "before", "behind", "below", "beneath", "beside", "between", "beyond", "blind", "braille", "children", "could", "deceive", "declare", "either", "first", "friend", "good", "great", "herself", "him", "himself", "immediate", "its", "itself", "letter", "little", "much", "must", "myself", "necessary", "neither", "oneself", "ourselves", "paid", "perceive", "perhaps", "quick", "receive", "said", "should", "such", "themselves", "today", "together", "tomorrow", "tonight", "would", "your", "yourself", "yourselves"]
-final_letter_groupsigns = ["ound", "ance", "sion", "less", "ount", "ence", "ong", "ful", "tion", "ness", "ment", "ity"]
+'''
+This docstring is here to show the categories that each braille key fit in to. Some alterations have been made. 
+Example: "in" fits into several categories but I had to place it in one category to allow my software to work.
 
-
-categories = {
-    "lowercase": lowercase,
-    "punctuation": punctuation,
-    "digits": digits,
-    "alpha_wordsigns": alpha_wordsigns,
-    "initial_letter_contractions": initial_letter_contractions,
-    "strong_groupsigns": strong_groupsigns,
-    "strong_contraction": strong_contraction,
-    "strong_wordsigns": strong_wordsigns,
-    "lower_wordsigns": lower_wordsigns,
-    "lower_groupsigns": lower_groupsigns,
-    "shortform_words": shortform_words,
-    "final_letter_groupsigns": final_letter_groupsigns
-}
-
-data = {}
+# lowercase = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+# punctuation = ["!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "{", "}", "°", " "]
+# digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+# alpha_wordsigns = ["but", "can", "do", "every", "from", "go", "have", "just", "knowledge", "like", "more", "not", "people", "quite", "rather", "so", "that", "us", "very", "will", "it", "you", "as"]
+# initial_letter_contractions = ["day", "ever", "father", "here", "know", "lord", "mother", "name", "one", "part", "question", "right", "some", "time", "under", "work", "young", "there", "character", "through", "where", "ought", "upon", "word", "these", "those", "whose", "cannot", "had", "many", "spirit", "world", "their"]
+# strong_groupsigns = ["ch", "sh", "th", "wh", "ou", "st", "gh", "ed", "er", "ow", "ar", "in"]
+# strong_contraction = ["and", "for", "of", "the", "with"]
+# strong_wordsigns = ["child","shall","this","which","out","still"]
+# lower_wordsigns = ["be","enough","were","his","was"]
+# lower_groupsigns = ["ea", "bb", "cc", "ff", "gg", "be", "con", "dis", "en"]
+# shortform_words = ["about", "above", "according", "across", "after", "afternoon", "afterward", "again", "against", "almost", "already", "also", "although", "altogether", "always", "because", "before", "behind", "below", "beneath", "beside", "between", "beyond", "blind", "braille", "children", "could", "deceive", "declare", "either", "first", "friend", "good", "great", "herself", "him", "himself", "immediate", "its", "itself", "letter", "little", "much", "must", "myself", "necessary", "neither", "oneself", "ourselves", "paid", "perceive", "perhaps", "quick", "receive", "said", "should", "such", "themselves", "today", "together", "tomorrow", "tonight", "would", "your", "yourself", "yourselves"]
+# final_letter_groupsigns = ["ound", "ance", "sion", "less", "ount", "ence", "ong", "ful", "tion", "ness", "ment", "ity"]
+'''
 
 braille = {
 "a": {"type": "lowercase", "value": [(1,)]},
@@ -273,10 +260,6 @@ braille = {
 "you":        { "type": "alpha_wordsigns", "value": [(1,3,4,5,6)]},
 "as":         { "type": "alpha_wordsigns", "value": [(1,3,5,6)]}}
 
-
-for key in braille:
-    data[key] = braille.get(key, [])
-
 with open("brailledict.json", "w") as f:
-    json.dump(data,f,indent = 4)
+    json.dump(braille,f,indent = 4)
 
