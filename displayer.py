@@ -5,6 +5,7 @@ import zipfile
 import subprocess
 import sys
 import re
+from io import BytesIO
 
 try:
     import pdfplumber
@@ -229,11 +230,6 @@ def match_keys(text, keys):
 
         _, seq_list, split_list, key_list = dp[0]
 
-        # if token[0].isupper():
-        #     for idx, seq in enumerate(seq_list):
-        #         if seq is not None:
-        #             seq_list[idx] = [[6]] + seq
-        #             break
 
         text[i:i+1] = split_list
         app.sequence[i:i+1] = seq_list
@@ -288,8 +284,6 @@ def match_keys(text, keys):
             low = ch.lower()
             if low in leftover_letters:
                 val = raw[low]["value"]
-                # if ch.isupper():
-                #     val = [[6]] + val
                 new_tokens.append(ch)
                 new_seq.append(val)
                 new_matches.append(match_case(low, ch))
@@ -377,6 +371,7 @@ app.mode = 'selecting'
 
 buttons = Group()
 dots = Group()
+updateGUI = Group()
 
 def create_button(locX, id):
     if(id == 'space'):
@@ -384,7 +379,7 @@ def create_button(locX, id):
     else:
         new = Oval(locX, app.height/2, app.width/10, app.height/5, fill='grey', border = 'black')
     new.id = id
-    new.label = (Label(id, locX, new.centerY, size = (app.width+app.height)/100))
+    new.label = (Label(id, locX, new.centerY, size = (app.width+app.height)/40))
     return new
 
 def start():
@@ -618,6 +613,131 @@ def onMousePress(x,y):
                 app.wideIndex = -1
             if(app.mode == "auto"):
                 app.mode = 'manual'
+
+
+github_version_file = "https://raw.githubusercontent.com/Jtrout5/Braille-Guide-Project/main/version.txt"
+repo_zip = "https://github.com/Jtrout5/Braille-Guide-Project/archive/refs/heads/main.zip"
+local_version_file = "version.txt"
+temp_dir = "_temp_update_dir"
+
+def get_local_version():
+    if not os.path.exists(local_version_file):
+        return "0.0.0"
+    with open(local_version_file, "r") as f:
+        return f.read().strip()
+
+def get_remote_version():
+    try:
+        r = requests.get(github_version_file, timeout=5)
+        return r.text.strip()
+    except:
+        return None
+
+def is_newer(remote, local):
+    def parse(v):
+        return tuple(map(int, v.split(".")))
+    return parse(remote) > parse(local)
+
+def download_and_update():
+    os.chdir("..")
+
+    r = requests.get(repo_zip)
+    z = zipfile.ZipFile(BytesIO(r.content))
+
+    if os.path.exists(temp_dir):
+        shutil.rmtree(temp_dir)
+    os.makedirs(temp_dir)
+
+    # Extract ZIP into temp
+    z.extractall(temp_dir)
+
+    # Find extracted folder (repo-main/)
+    extracted_root = None
+    for name in os.listdir(temp_dir):
+        path = os.path.join(temp_dir, name)
+        if os.path.isdir(path):
+            extracted_root = os.path.join(temp_dir, name)
+            break
+
+    # Create updater script
+    updater_script = os.path.join(".", "run_update.py")
+    with open(updater_script, "w") as f:
+        f.write(f"""
+import os
+import shutil
+import time
+import subprocess
+import sys
+
+file_path = os.path.abspath(__file__)
+directory_path = os.path.dirname(file_path)
+os.chdir(directory_path)
+
+PROJECT_ROOT = "Braille-Guide-Project"
+TEMP_DIR = "{temp_dir}"
+EXTRACTED = "{extracted_root}"
+LAUNCHER = "displayer.py"
+
+time.sleep(1)
+
+for item in os.listdir(PROJECT_ROOT):
+    if item in ["run_update.py"]:
+        continue
+    path = os.path.join(PROJECT_ROOT, item)
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+    else:
+        os.remove(path)
+
+for item in os.listdir(EXTRACTED):
+    src = os.path.join(EXTRACTED, item)
+    dst = os.path.join(PROJECT_ROOT, item)
+    if os.path.isdir(src):
+        shutil.copytree(src, dst)
+    else:
+        shutil.copy2(src, dst)
+
+for game, saved_path in preserved.items():
+    new_game_path = os.path.join(PROJECT_ROOT, "apps", game)
+    new_files_path = os.path.join(new_game_path, "Files")
+
+    if os.path.exists(new_game_path):
+        if os.path.exists(new_files_path):
+            shutil.rmtree(new_files_path)
+        shutil.copytree(saved_path, new_files_path)
+
+shutil.rmtree(TEMP_DIR)
+
+subprocess.Popen([sys.executable, os.path.join(PROJECT_ROOT, LAUNCHER)])
+
+os.remove("run_update.py")
+""")
+
+    subprocess.Popen([sys.executable, updater_script])
+    exit()
+
+def check_for_updates():
+    app.mode = 'checking'
+    local = get_local_version()
+    remote = get_remote_version()
+
+
+    if remote is None:
+        app.mode = 'selecting'
+
+    if is_newer(remote, local):
+        box = Rect(width/4, height/3, width/2, height/3, fill='white', border = 'cyan')
+        question = Label("A newer version is available, do you wish to update?", box.centerX, box.top + box.height/3, align = 'top', size = width/60)
+        app.updateButton = Rect(box.left, box.bottom, box.width/2, box.height/2, fill='green', align = 'bottom-left')
+        app.noUpdateButton = Rect(box.right, box.bottom, box.width/2, box.height/2, fill='red', align = 'bottom-right')
+        ans1 = Label("Yes", app.updateButton.centerX, app.updateButton.centerY, fill = 'white')
+        ans2 = Label("No", app.noUpdateButton.centerX, app.noUpdateButton.centerY, fill='white')
+        updateGUI.add(box, question, app.updateButton, app.noUpdateButton, ans1, ans2)
+        return 
+    else:
+        app.mode = 'selecting'
+        return
+
 
 
 app.run()
