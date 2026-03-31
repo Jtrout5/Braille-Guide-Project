@@ -683,12 +683,6 @@ def is_newer(remote, local):
         return tuple(map(int, v.split(".")))
     return parse(remote) > parse(local)
 
-import os
-import shutil
-import zipfile
-import requests
-from io import BytesIO
-
 def download_and_update():
     r = requests.get(repo_zip)
     if r.status_code != 200:
@@ -712,7 +706,7 @@ def download_and_update():
     if not extracted_root or not os.listdir(extracted_root):
         raise Exception("Extraction failed or empty update")
 
-    updater_script = os.path.join(".", "run_update.py")
+    updater_script = "run_update.py"
 
     with open(updater_script, "w") as f:
         f.write(f"""
@@ -726,8 +720,8 @@ file_path = os.path.abspath(__file__)
 PROJECT_ROOT = os.path.dirname(file_path)
 os.chdir(PROJECT_ROOT)
 
-TEMP_DIR = r"{temp_dir}"
-EXTRACTED = r"{extracted_root}"
+TEMP_DIR = "_temp_update_dir"
+EXTRACTED = "_temp_update_dir/Braille-Guide-Project-main"
 DISPLAYER = "displayer.py"
 BACKUP_DIR = PROJECT_ROOT + "_backup"
 
@@ -772,7 +766,7 @@ except Exception as e:
 
     if os.path.exists(BACKUP_DIR):
         for item in os.listdir(PROJECT_ROOT):
-            if item == "run_update.py":
+            if item in[ "run_update.py", "_temp_update_dir"]:
                 continue
             path = os.path.join(PROJECT_ROOT, item)
             if os.path.isdir(path):
