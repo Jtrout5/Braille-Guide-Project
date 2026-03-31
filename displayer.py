@@ -689,23 +689,19 @@ import zipfile
 import requests
 from io import BytesIO
 
-def download_and_update(repo_zip, temp_dir="temp_update"):
-    # --- Download ZIP ---
+def download_and_update():
     r = requests.get(repo_zip)
     if r.status_code != 200:
         raise Exception("Failed to download update")
 
     z = zipfile.ZipFile(BytesIO(r.content))
 
-    # --- Prepare temp directory ---
     if os.path.exists(temp_dir):
         shutil.rmtree(temp_dir)
     os.makedirs(temp_dir)
 
-    # --- Extract ZIP ---
     z.extractall(temp_dir)
 
-    # --- Find extracted root folder ---
     extracted_root = None
     for name in os.listdir(temp_dir):
         path = os.path.join(temp_dir, name)
@@ -735,7 +731,6 @@ EXTRACTED = r"{extracted_root}"
 DISPLAYER = "displayer.py"
 BACKUP_DIR = PROJECT_ROOT + "_backup"
 
-# --- Safety checks ---
 if not os.path.exists(os.path.join(PROJECT_ROOT, DISPLAYER)):
     print("Safety check failed: displayer.py not found")
     sys.exit(1)
@@ -751,12 +746,10 @@ if not os.path.exists(EXTRACTED) or not os.listdir(EXTRACTED):
 time.sleep(1)
 
 try:
-    # --- Step 1: Backup current project ---
     if os.path.exists(BACKUP_DIR):
         shutil.rmtree(BACKUP_DIR)
     shutil.copytree(PROJECT_ROOT, BACKUP_DIR, dirs_exist_ok=True)
-
-    # --- Step 2: Copy new files over (without deleting first) ---
+    
     for item in os.listdir(EXTRACTED):
         src = os.path.join(EXTRACTED, item)
         dst = os.path.join(PROJECT_ROOT, item)
@@ -768,19 +761,15 @@ try:
         else:
             shutil.copy2(src, dst)
 
-    # --- Step 3: Cleanup temp ---
     shutil.rmtree(TEMP_DIR)
-
-    # --- Step 4: Launch updated app ---
+    
     subprocess.Popen([sys.executable, os.path.join(PROJECT_ROOT, DISPLAYER)])
 
-    # --- Step 5: Remove backup if everything worked ---
     shutil.rmtree(BACKUP_DIR)
 
 except Exception as e:
     print("Update failed, restoring backup:", e)
 
-    # --- Rollback ---
     if os.path.exists(BACKUP_DIR):
         for item in os.listdir(PROJECT_ROOT):
             if item == "run_update.py":

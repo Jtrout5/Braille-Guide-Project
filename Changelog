@@ -18,3 +18,7 @@ Several feature updates to displayer:
 1.0.2 Release
 
 Fixed a bug leading to buttons relating to updates not being clickable
+
+1.1.0 Release
+
+Fixed massive oversight on update logic which gave updater permissions one level higher than intended, leading to the deletion of everything in the folder one level above the folder of this project. (Ask me how I know) This bug is completely fixed now, and the update logic has extra safeguards in place to prevent such issues.
