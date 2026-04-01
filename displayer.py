@@ -602,57 +602,58 @@ def onKeyPress(key):
         show_print("")
 
 def onMousePress(x,y):
-    check_speed(x,y)
-    if(typing_input_button.contains(x,y)):
-        app.mode = 'typing'
-        app.tokens.clear()
-        app.matches.clear()
-        app.sequence.clear()
-        app.wideIndex = -1
-        text = app.getTextInput("Enter your text for braille conversion")
-        app.tokens+=tokenize(text)
-        match_keys(app.tokens, legal_tokens)
-        paired_expansion(app.sequence, app.matches)
-        app.mode = 'auto' if auto_manual_label.value == "Auto Mode" else "manual"
-        app.tokens.clear()        
-    if(file_input_button.contains(x,y)):
-        from_device()
-        paired_expansion(app.sequence, app.matches)
-        app.mode = 'auto' if app.displayMode == "Auto" else "manual"
-        app.wideIndex = -1
-        app.tokens.clear()
-    if(play_pause_button.contains(x,y)):
-        if(play_pause_label.value == "Running"):
-            play_pause_label.value = "Paused"
-            app.playing = False
-        else:
-            if(app.mode == "auto"):
-                play_pause_label.value = "Running"
-                app.playing = True
-    if(auto_manual_button.contains(x,y)):
-        if(auto_manual_label.value == "Manual Mode"):
-            auto_manual_label.value = "Auto Mode"
-            app.displayMode = "Auto"
-            if(app.mode == 'manual'):
-                app.mode = 'auto'
-        else:
-            auto_manual_label.value = "Manual Mode"
-            app.displayMode = "Manual"
-            app.playing = False
-            play_pause_label.value = "Paused"
-            if(app.mode == "auto"):
-                app.mode = 'manual'
-    if(increase_cpm_button.contains(x,y)):
-        if(app.cpm<120):
-            app.cpm+=1
-            app.selected_delay = (int)(app.stepsPerSecond*60/app.cpm)
-            cpm_label.value = ("%d cells per minute (Auto Mode)") %app.cpm
-    if(decrease_cpm_button.contains(x,y)):
-        if(app.cpm>10):
-            app.cpm-=1
-            app.selected_delay = (int)(app.stepsPerSecond*60/app.cpm)
-            cpm_label.value = ("%d cells per minute (Auto Mode)") %app.cpm
-    if(app.mode == 'checking'):
+    if(app.mode!="checking"):
+        check_speed(x,y)
+        if(typing_input_button.contains(x,y)):
+            app.mode = 'typing'
+            app.tokens.clear()
+            app.matches.clear()
+            app.sequence.clear()
+            app.wideIndex = -1
+            text = app.getTextInput("Enter your text for braille conversion")
+            app.tokens+=tokenize(text)
+            match_keys(app.tokens, legal_tokens)
+            paired_expansion(app.sequence, app.matches)
+            app.mode = 'auto' if auto_manual_label.value == "Auto Mode" else "manual"
+            app.tokens.clear()        
+        if(file_input_button.contains(x,y)):
+            from_device()
+            paired_expansion(app.sequence, app.matches)
+            app.mode = 'auto' if app.displayMode == "Auto" else "manual"
+            app.wideIndex = -1
+            app.tokens.clear()
+        if(play_pause_button.contains(x,y)):
+            if(play_pause_label.value == "Running"):
+                play_pause_label.value = "Paused"
+                app.playing = False
+            else:
+                if(app.mode == "auto"):
+                    play_pause_label.value = "Running"
+                    app.playing = True
+        if(auto_manual_button.contains(x,y)):
+            if(auto_manual_label.value == "Manual Mode"):
+                auto_manual_label.value = "Auto Mode"
+                app.displayMode = "Auto"
+                if(app.mode == 'manual'):
+                    app.mode = 'auto'
+            else:
+                auto_manual_label.value = "Manual Mode"
+                app.displayMode = "Manual"
+                app.playing = False
+                play_pause_label.value = "Paused"
+                if(app.mode == "auto"):
+                    app.mode = 'manual'
+        if(increase_cpm_button.contains(x,y)):
+            if(app.cpm<120):
+                app.cpm+=1
+                app.selected_delay = (int)(app.stepsPerSecond*60/app.cpm)
+                cpm_label.value = ("%d cells per minute (Auto Mode)") %app.cpm
+        if(decrease_cpm_button.contains(x,y)):
+            if(app.cpm>10):
+                app.cpm-=1
+                app.selected_delay = (int)(app.stepsPerSecond*60/app.cpm)
+                cpm_label.value = ("%d cells per minute (Auto Mode)") %app.cpm
+    else:
         if(app.updateButton.contains(x,y)):
             download_and_update()
         if(app.noUpdateButton.contains(x,y)):
