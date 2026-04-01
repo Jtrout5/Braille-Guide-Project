@@ -22,3 +22,7 @@ Fixed a bug leading to buttons relating to updates not being clickable
 1.1.0 Release
 
 Fixed massive oversight on update logic which gave updater permissions one level higher than intended, leading to the deletion of everything in the folder one level above the folder of this project. (Ask me how I know) This bug is completely fixed now, and the update logic has extra safeguards in place to prevent such issues.
+
+1.1.2 Release
+
+When in auto mode, the printed text will disappear during the short period between cell inputs if the cell inputs are identical. Example: in hello, the period between the 2 l characters will have a blank text showing, to ensure the user understands that it is 2 different instances of the letter. While I believe that the resetting and rehighlighting of the buttons was suffucuent, this adds another layer of guarantees for the ability to learn braille with this software. Please note that multicell contractions are unaffected: Example: According which is dots (6) (1), (1,4) will not flash "According" as it will stay consitently throughout the displaying of the cells making it up.
