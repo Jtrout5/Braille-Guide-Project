@@ -359,8 +359,10 @@ def onStep():
         if(app.time_delay == (int)(app.selected_delay/3)):
             display([])
             if(app.wideIndex<(len(app.sequence)-1)):
-                if(app.sequence[app.wideIndex] == app.sequence[app.wideIndex+1]):
+                if((app.sequence[app.wideIndex] == app.sequence[app.wideIndex+1]) or (not(app.matches[app.wideIndex] == app.matches[app.wideIndex+1]))):
                     show_print("")
+            else:
+                show_print("")
         if(app.time_delay == 0):
             if(app.mode == 'auto' and app.playing == True):
                 app.time_delay = app.selected_delay

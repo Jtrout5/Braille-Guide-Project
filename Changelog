@@ -26,3 +26,7 @@ Fixed massive oversight on update logic which gave updater permissions one level
 1.1.2 Release
 
 When in auto mode, the printed text will disappear during the short period between cell inputs if the cell inputs are identical. Example: in hello, the period between the 2 l characters will have a blank text showing, to ensure the user understands that it is 2 different instances of the letter. While I believe that the resetting and rehighlighting of the buttons was suffucuent, this adds another layer of guarantees for the ability to learn braille with this software. Please note that multicell contractions are unaffected: Example: According which is dots (6) (1), (1,4) will not flash "According" as it will stay consitently throughout the displaying of the cells making it up.
+
+1.1.3 Release
+
+Brought 1.1.2 change forward such that the shown enlgish characters are always removed at the same time as the short period between cell inputs begins. Now the only time that the shown characters are not removed are if the shown characters are related to several subsequent cells. Example: "Hello.." as text input will have "H" shown for the full time of the following cell inputs (6) and (1,2,5) without disappearing since the H is related to both of those cells. The H will be removed at the time the last related cell is removed. All other characters will be removed at the exact time their cell display ends.
