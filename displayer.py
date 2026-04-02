@@ -245,7 +245,6 @@ def match_keys(text, keys):
 
     while i < len(text):
         token = text[i]
-
         if token is None:
             i += 1
             continue
@@ -325,6 +324,10 @@ def show_braille(tuple_val):
             dot.fill = None
 
 def display(tuple_val):
+    for thing in tuple_val:
+        if(type(thing) == list): ##Only happens with numbers as a quirk of how match_keys handles digits
+            display(thing)
+            return
     show_braille(tuple_val)
     for button in buttons:
         if button.id in tuple_val:
@@ -370,14 +373,19 @@ def onStep():
                     app.mode = 'selecting'
                 if(app.wideIndex>= -1):
                     if(app.wideIndex<len(app.sequence)):
-                        app.wideIndex += 1
-                        app.cellsSinceLastNewLine += 1
-                        if(app.wideIndex<len(app.sequence)):
-                            display(app.sequence[app.wideIndex])
-                            show_print(app.matches[app.wideIndex])
-                        else:
+                        if(app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine!=0):
                             display([])
-                            show_print("")
+                            show_print("\n")
+                            app.cellsSinceLastNewLine = 0
+                        else:
+                            app.wideIndex+=1
+                            app.cellsSinceLastNewLine += 1
+                            if(app.wideIndex<len(app.sequence)):
+                                display(app.sequence[app.wideIndex])
+                                show_print(app.matches[app.wideIndex])
+                            else:
+                                display([])
+                                show_print("")
                     else:
                         play_pause_label.value = "Paused"
                         app.playing = False
@@ -566,7 +574,10 @@ def onKeyPress(key):
             app.time_delay = app.selected_delay
             if(app.wideIndex>0):
                 app.wideIndex -=1
-                app.cellsSinceLastNewLine -=1
+                if(app.cellsSinceLastNewLine>1):
+                    app.cellsSinceLastNewLine -=1
+                else:
+                    app.cellsSinceLastNewLine = app.pageWidth-1
                 display(app.sequence[app.wideIndex])
                 show_print(app.matches[app.wideIndex])
             else:
