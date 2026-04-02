@@ -373,7 +373,7 @@ def onStep():
                     app.mode = 'selecting'
                 if(app.wideIndex>= -1):
                     if(app.wideIndex<len(app.sequence)):
-                        if(app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine!=0):
+                        if(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine!=0):
                             display([])
                             show_print("\n")
                             app.cellsSinceLastNewLine = 0
@@ -462,9 +462,10 @@ def paired_expansion(lst1, lst2):
     duplicate2 = []
     idx = 0
     for item in lst1:
-        for thing in item:
-            duplicate1.append(thing)
-            duplicate2.append(lst2[idx])
+        if(item!=None): ##In the case of unmatched chars like \t or some weird punctuation which I don't have rules for
+            for thing in item:
+                duplicate1.append(thing)
+                duplicate2.append(lst2[idx])
         idx+=1
     lst1.clear()
     lst2.clear()

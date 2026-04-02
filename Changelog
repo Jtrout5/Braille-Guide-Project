@@ -38,3 +38,6 @@ Current plans are as follows:
     Entirely capitalized words appropriately getting a double (6) modifier instead of each letter receiving a dot 6 modifier
     Early warning system for words that would overrun the page width, such that a newline occurs sooner, leading to words not being cut off at the edge of the page
 
+1.2.1 Patch
+
+Fixed a bug leading to crashes when using the "infinite" page width in automatic mode, by adding similar behavior as exists in manual mode. Additionally, implemenmted a None type check to avoid crashes relating to certain punctuation, formatting, or special characters found in some files which are not currently recognized in the braille dictionary generated with this project. This update should resolve many crashes.
