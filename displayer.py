@@ -61,6 +61,7 @@ app.cellsSinceLastNewLine = 0
 app.time_delay = 45
 app.wideIndex = -1
 app.pageWidth = 42
+app.spaceToEdge = app.pageWidth-app.cellsSinceLastNewLine
 size = pyautogui.size()
 width = size[0]
 height = size[1]
@@ -313,6 +314,7 @@ def show_print(text):
     printed_version.value = text
     if(text == "\n"):
         app.cellsSinceLastNewLine = 0
+        app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
         printed_version.value = "*Go to next line*"
         app.time_delay = (int)(app.stepsPerSecond * 3.5)
 
@@ -386,6 +388,7 @@ def onStep():
                             else:
                                 display([])
                                 show_print("")
+                        app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
                     else:
                         play_pause_label.value = "Paused"
                         app.playing = False
@@ -617,6 +620,7 @@ def onKeyPress(key):
     else:
         display([])
         show_print("")
+    app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
 
 def onMousePress(x,y):
     if(app.mode!="checking"):
