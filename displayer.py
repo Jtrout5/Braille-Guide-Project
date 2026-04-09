@@ -450,6 +450,8 @@ increase_cpm_button = Rect(cpm_label.right+10, cpm_label.centerY, app.width/30, 
 decrease_cpm_button = Rect(cpm_label.left-10, cpm_label.centerY, app.width/30, app.width/40, fill='white', border = 'black', align = 'right')
 increase_cpm_label = Label("Increase", increase_cpm_button.centerX, increase_cpm_button.centerY)
 decrease_cpm_label = Label("Decrease", decrease_cpm_button.centerX, decrease_cpm_button.centerY)
+escape_button = Circle(app.width/2, auto_manual_button.centerY, auto_manual_button.radius, fill='white', border = 'red', borderWidth = 5)
+escape_label = Label("Exit", escape_button.centerX, escape_button.centerY, fill='red', size = inc1Label.size * 2, bold = True)
 
 
 for i in range(1,7,1):
@@ -477,7 +479,7 @@ def paired_expansion(lst1, lst2):
         lst2.append(duplicate2[i])
 
 
-def increase_speed_max():
+def increase_width_max():
     '''
     Takes no args and returns no values
     If the game is in screensaver mode, then this will set screensaver autoclicks to max speed
@@ -485,7 +487,7 @@ def increase_speed_max():
     app.pageWidth = "Infinite"
     linesPerPageLabel.value = "Characters per line: %s" %app.pageWidth 
 
-def decrease_speed_max():
+def decrease_width_max():
     '''
     Takes no args and returns no values
     If the game is in screensaver mode, then this will set screensaver autoclicks to minimum speed
@@ -493,7 +495,7 @@ def decrease_speed_max():
     app.pageWidth = 10
     linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
 
-def increase_speed_10():
+def increase_width_10():
     '''
     Takes no args and returns no values
     If the game is in screensaver mode, then this will increase the speed of autoclicks by 10 per minute
@@ -503,9 +505,9 @@ def increase_speed_10():
         app.pageWidth+=10
         linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
     else:
-        increase_speed_max()
+        increase_width_max()
 
-def decrease_speed_10():
+def decrease_width_10():
     '''
     Takes no args and returns no values
     If the game is in screensaver mode, then this will decrease the speed of autoclicks by 10 per minute
@@ -519,9 +521,9 @@ def decrease_speed_10():
             app.pageWidth = 50
             linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
         else: 
-            decrease_speed_max()
+            decrease_width_max()
 
-def increase_speed():
+def increase_width():
     '''
     Takes no args and returns no values
     If the game is in screensaver mode, then this will increase the speed of autoclicks by 1 per minute
@@ -534,7 +536,7 @@ def increase_speed():
             app.pageWidth = "Infinite"
             linesPerPageLabel.value = "Characters per line: %s" %app.pageWidth
 
-def decrease_speed():
+def decrease_width():
     '''
     Takes no args and returns no values
     If the game is in screensaver mode, then this will decrease the speed of autoclicks by 1 per minute
@@ -549,7 +551,7 @@ def decrease_speed():
             linesPerPageLabel.value = "Characters per line %d" % app.pageWidth
           
             
-def check_speed(x,y):
+def check_width(x,y):
     '''
     Takes 2 positional arguments, x and y
     Returns no values
@@ -557,17 +559,17 @@ def check_speed(x,y):
     Calls speed alteration functions as needed
     '''
     if(linesDecreaseButton.contains(x, y)):
-        decrease_speed()
+        decrease_width()
     if(linesIncreaseButton.contains(x, y)):
-        increase_speed()
+        increase_width()
     if(linesDecrease10Button.contains(x, y)):
-        decrease_speed_10()
+        decrease_width_10()
     if(linesIncrease10Button.contains(x, y)):
-        increase_speed_10()
+        increase_width_10()
     if(linesDecreaseMaxButton.contains(x, y)):
-        decrease_speed_max()
+        decrease_width_max()
     if(linesIncreaseMaxButton.contains(x, y)):
-        increase_speed_max()
+        increase_width_max()
 
 def onKeyPress(key):
     if(app.mode!='typing'):
@@ -624,7 +626,7 @@ def onKeyPress(key):
 
 def onMousePress(x,y):
     if(app.mode!="checking"):
-        check_speed(x,y)
+        check_width(x,y)
         if(typing_input_button.contains(x,y)):
             app.mode = 'typing'
             app.tokens.clear()
@@ -680,6 +682,8 @@ def onMousePress(x,y):
         if(app.noUpdateButton.contains(x,y)):
             updateGUI.clear()
             app.mode = 'selecting'
+    if(escape_button.contains(x,y)):
+        sys.exit(0)
 
 
 github_version_file = "https://raw.githubusercontent.com/Jtrout5/Braille-Guide-Project/main/version.txt"
