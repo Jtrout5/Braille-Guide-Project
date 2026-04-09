@@ -388,7 +388,7 @@ def onStep():
                             else:
                                 display([])
                                 show_print("")
-                        app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
+                            app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
                     else:
                         play_pause_label.value = "Paused"
                         app.playing = False
@@ -579,13 +579,29 @@ def onKeyPress(key):
         if(key == 'left'):
             app.time_delay = app.selected_delay
             if(app.wideIndex>0):
-                app.wideIndex -=1
-                if(app.cellsSinceLastNewLine>1):
-                    app.cellsSinceLastNewLine -=1
+                if(app.pageWidth!="Infinite"):
+                    if(app.cellsSinceLastNewLine == 0):
+                        if(app.wideIndex<len(app.sequence)):                            
+                            display(app.sequence[app.wideIndex])
+                            show_print(app.matches[app.wideIndex])
+                        else:
+                            display([])
+                            show_print("")
+                        app.cellsSinceLastNewLine = app.pageWidth
+                    else:
+                        if(app.wideIndex<len(app.sequence)):
+                            if(app.cellsSinceLastNewLine>1):
+                                app.cellsSinceLastNewLine -=1
+                            else:
+                                app.cellsSinceLastNewLine = app.pageWidth
+                        app.wideIndex -=1
+                        display(app.sequence[app.wideIndex])
+                        show_print(app.matches[app.wideIndex])
+                    app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
                 else:
-                    app.cellsSinceLastNewLine = app.pageWidth-1
-                display(app.sequence[app.wideIndex])
-                show_print(app.matches[app.wideIndex])
+                    app.wideIndex -=1
+                    display(app.sequence[app.wideIndex])
+                    show_print(app.matches[app.wideIndex])
             else:
                 app.wideIndex = -1
                 app.cellsSinceLastNewLine = 0
@@ -608,6 +624,7 @@ def onKeyPress(key):
                         app.wideIndex = len(app.sequence)
                         display([])
                         show_print("")
+                app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
             else:
                 app.time_delay = app.selected_delay
                 if(app.wideIndex<len(app.sequence)-1):
@@ -622,8 +639,6 @@ def onKeyPress(key):
     else:
         display([])
         show_print("")
-    app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
-
 def onMousePress(x,y):
     if(app.mode!="checking"):
         check_width(x,y)
@@ -843,4 +858,5 @@ def check_for_updates():
 
 check_for_updates()
 updateGUI.toFront()
+
 app.run()

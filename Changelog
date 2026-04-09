@@ -45,3 +45,7 @@ Fixed a bug leading to crashes when using the "infinite" page width in automatic
 1.2.2 Patch
 
 Added an exit button so users can end the program without using hotkeys like Alt F4 or CMD W. The button is at the top of the screen, clearly labeled, highlighted in red, and bold compared to other buttons. Should prevent accidental clicking. Clicking the exit button will immediately exit the program. 
+
+1.2.3 Path
+
+Fixed a counting bug relating to how many cells had been typed since the most recently new line. This bug, could in rare circumstances cause a crash. The circumestances of this crash were very complicated and only really acheivable if trying to break the program, which is how I found it. In fixing this bug, I also fixed another bug which caused inconsistent application of newline instructions if the user went back any number of cells past where a suggested new line had popped up. That bug led to a slippage of cells versus page width, and would sometimes hide one of the cells when moving in reverse order. All of these issues have now been fixed. With this bug fix, the groundwork has been laid for the implementation of the early warning system for words longer than the amount of space remaining on the page. This feature should be added by 04/17/2026 at the latest.
