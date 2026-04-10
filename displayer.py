@@ -388,7 +388,8 @@ def onStep():
                             else:
                                 display([])
                                 show_print("")
-                            app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
+                            if(app.pageWidth!= "Infinite"):
+                                app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
                     else:
                         play_pause_label.value = "Paused"
                         app.playing = False
