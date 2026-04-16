@@ -249,7 +249,7 @@ def match_keys(text, keys):
                     cell_count = len(val)
 
                     total = next_cells + cell_count
-                    if total < best_cells:
+                    if total < best_cells or (total == best_cells and len(key) > len(best_split[0])):
                         best_cells = total
                         best_seq = [val] + next_seq
                         best_split = [token[pos:end]] + next_split
