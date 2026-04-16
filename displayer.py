@@ -310,6 +310,15 @@ def match_keys(text, keys):
         if token[0].isupper():
             app.sequence[i] = [[6]] + seq
 
+def safe_to_proceed(dist):
+    for i in range(1, dist+1):
+        if((app.wideIndex + i) < len(app.sequence)):
+            if(app.sequence[app.wideIndex+i] == ['space'] or (app.sequence[app.wideIndex+i] == ['NewLine'])):
+                return True 
+        else:
+            return True
+    return False
+
 def show_print(text):
     printed_version.value = text
     if(text == "\n"):
@@ -317,6 +326,12 @@ def show_print(text):
         app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
         printed_version.value = "*Go to next line*"
         app.time_delay = (int)(app.stepsPerSecond * 3.5)
+    if(app.pageWidth!="Infinite"):
+        if(text ==" "):
+            if(not(safe_to_proceed(app.spaceToEdge))):
+                if(app.wideIndex<(len(app.sequence)-1)):
+                    show_print("\n")
+                    display([])
 
 def show_braille(tuple_val):
     for dot in dots:
@@ -375,7 +390,7 @@ def onStep():
                     app.mode = 'selecting'
                 if(app.wideIndex>= -1):
                     if(app.wideIndex<len(app.sequence)):
-                        if(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine!=0):
+                        if(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine!=0 and app.wideIndex<len(app.sequence)-1):
                             display([])
                             show_print("\n")
                             app.cellsSinceLastNewLine = 0
@@ -610,7 +625,7 @@ def onKeyPress(key):
                 show_print("")
         if(key =='right'):
             if(app.pageWidth!= "Infinite"):
-                if(app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine != 0):
+                if(app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine != 0 and app.wideIndex<len(app.sequence)-1):
                     display([])
                     show_print("\n")
                     app.cellsSinceLastNewLine = 0
