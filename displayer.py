@@ -54,6 +54,11 @@ except ImportError as e:
     shutil.rmtree("cmu_graphics_installer")
     from cmu_graphics import *
 
+
+RULES = { ## WILL ADD NEW RULES AS ISSUES ARISE
+    "ea": {"not_start": True, "no_prefix_boundary": True},
+    "be": {"only_start": True},
+}
 default_delay = 45    
 app.cpm = (app.stepsPerSecond*60/default_delay) 
 app.selected_delay = (app.stepsPerSecond*60)/app.cpm
@@ -113,6 +118,27 @@ def extract_text(path):
 def tokenize(txt):
     tokens = re.findall(r"[A-Za-z0-9]+|[^\w\s]| |\n", txt)
     return tokens
+
+def is_valid_contraction(key, word, pos):
+    rules = RULES.get(key)
+    if not rules:
+        return True
+
+    end = pos + len(key)
+
+    if rules.get("not_start") and pos == 0:
+        return False
+    if rules.get("only_start") and pos != 0:
+        return False
+
+    if rules.get("no_prefix_boundary"):
+        prefixes = ("re", "un", "dis", "pre", "sub")
+        for p in prefixes:
+            if word.startswith(p) and pos == len(p):
+                return False
+
+    return True
+
 
 def match_case(key, token):
     if token.isupper():
@@ -215,7 +241,7 @@ def match_keys(text, keys):
             best_keys = fallback_keys
 
             for key in groupsigns:
-                if lower.startswith(key, pos):
+                if lower.startswith(key, pos) and is_valid_contraction(key, token, pos):
                     end = pos + len(key)
                     next_cells, next_seq, next_split, next_keys = dp[end]
 
@@ -655,6 +681,7 @@ def onKeyPress(key):
     else:
         display([])
         show_print("")
+
 def onMousePress(x,y):
     if(app.mode!="checking"):
         check_width(x,y)
