@@ -13,6 +13,7 @@ try:
     import textract
     import requests
     import pyautogui
+    import pyphen
 except ImportError as e:
     os.system("pip3 install -r requirements.txt")
     import pdfplumber
@@ -20,6 +21,7 @@ except ImportError as e:
     import textract
     import requests
     import pyautogui
+    import pyphen
 
 def download_zip_file(url, destination_folder, filename):
     '''
@@ -57,8 +59,11 @@ except ImportError as e:
 
 RULES = { ## WILL ADD NEW RULES AS ISSUES ARISE
     "ea": {"not_start": True, "no_prefix_boundary": True},
-    "be": {"only_start": True},
+    "be": {"only_first_syllable": True},
+    "dis": {"only_first_syllable": True},
+    "con": {"only_first_syllable": True}
 }
+
 default_delay = 45    
 app.cpm = (app.stepsPerSecond*60/default_delay) 
 app.selected_delay = (app.stepsPerSecond*60)/app.cpm
@@ -119,23 +124,22 @@ def tokenize(txt):
     tokens = re.findall(r"[A-Za-z0-9]+|[^\w\s]| |\n", txt)
     return tokens
 
+_pyphen_dic = pyphen.Pyphen(lang="en")
+
+def _pyphen_syllables(word):
+    return _pyphen_dic.inserted(word).split("-")
+
+
 def is_valid_contraction(key, word, pos):
+    broken = _pyphen_syllables(word)
     rules = RULES.get(key)
     if not rules:
         return True
 
-    end = pos + len(key)
-
     if rules.get("not_start") and pos == 0:
         return False
-    if rules.get("only_start") and pos != 0:
+    if rules.get("only_first_syllable") and key != broken[0]:
         return False
-
-    if rules.get("no_prefix_boundary"):
-        prefixes = ("re", "un", "dis", "pre", "sub")
-        for p in prefixes:
-            if word.startswith(p) and pos == len(p):
-                return False
 
     return True
 

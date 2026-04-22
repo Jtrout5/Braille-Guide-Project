@@ -3,3 +3,4 @@ python-docx
 textract-py3
 requests
 pyautogui
+pyphen
