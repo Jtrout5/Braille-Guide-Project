@@ -61,3 +61,7 @@ Added a feature which looks ahead to discover if the next word, number, or set o
 1.4.0 Release
 
 Huge improvement to contraction logic with the ability to expand and update rules as needed, but I believe I have properly matched UEB for most rules. I have verified correctness with a series of words, but it's possible some errors persist. This improvement was made with the help of pyphen, a library which helps to syllabilize words, which is useful since many UEB contractions are syllable based. As such, pyphen has been added to the requirements list and will now be installed on startup if you have not already installed it. 
+
+1.4.1 Patch
+
+Fixed a small, yet annoying, bug in the page width safety check which was causing a repeeated offset of the text when moving in reverse. This bug caused a newline to be generated at every space when moving in reverse after the first newline was created. Moving forwards did not yield this issue but if it happened once becuase of moving backwards, then the entire rest of the text would be offset. This issue has been resolved.

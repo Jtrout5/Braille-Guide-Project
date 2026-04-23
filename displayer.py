@@ -361,19 +361,20 @@ def safe_to_proceed(dist):
             return True
     return False
 
-def show_print(text):
+def show_print(text, key):
     printed_version.value = text
     if(text == "\n"):
         app.cellsSinceLastNewLine = 0
         app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
         printed_version.value = "*Go to next line*"
         app.time_delay = (int)(app.stepsPerSecond * 3.5)
-    if(app.pageWidth!="Infinite"):
-        if(text ==" "):
-            if(not(safe_to_proceed(app.spaceToEdge))):
-                if(app.wideIndex<(len(app.sequence)-1)):
-                    show_print("\n")
-                    display([])
+    if(key!='left'):
+        if(app.pageWidth!="Infinite"):
+            if(text ==" "):
+                if(not(safe_to_proceed(app.spaceToEdge))):
+                    if(app.wideIndex<(len(app.sequence)-1)):
+                        show_print("\n", key)
+                        display([])
 
 def show_braille(tuple_val):
     for dot in dots:
@@ -422,9 +423,9 @@ def onStep():
             display([])
             if(app.wideIndex<(len(app.sequence)-1)):
                 if((app.sequence[app.wideIndex] == app.sequence[app.wideIndex+1]) or (not(app.matches[app.wideIndex] == app.matches[app.wideIndex+1]))):
-                    show_print("")
+                    show_print("", 'right')
             else:
-                show_print("")
+                show_print("", 'right')
         if(app.time_delay == 0):
             if(app.mode == 'auto' and app.playing == True):
                 app.time_delay = app.selected_delay
@@ -434,24 +435,24 @@ def onStep():
                     if(app.wideIndex<len(app.sequence)):
                         if(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine!=0 and app.wideIndex<len(app.sequence)-1):
                             display([])
-                            show_print("\n")
+                            show_print("\n", 'right')
                             app.cellsSinceLastNewLine = 0
                         else:
                             app.wideIndex+=1
                             app.cellsSinceLastNewLine += 1
                             if(app.wideIndex<len(app.sequence)):
                                 display(app.sequence[app.wideIndex])
-                                show_print(app.matches[app.wideIndex])
+                                show_print(app.matches[app.wideIndex], 'right')
                             else:
                                 display([])
-                                show_print("")
+                                show_print("", 'right')
                             if(app.pageWidth!= "Infinite"):
                                 app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
                     else:
                         play_pause_label.value = "Paused"
                         app.playing = False
                         display([])
-                        show_print("")
+                        show_print("", 'right')
 
 app.mode = 'selecting'
 
@@ -641,10 +642,10 @@ def onKeyPress(key):
                     if(app.cellsSinceLastNewLine == 0):
                         if(app.wideIndex<len(app.sequence)):                            
                             display(app.sequence[app.wideIndex])
-                            show_print(app.matches[app.wideIndex])
+                            show_print(app.matches[app.wideIndex], key)
                         else:
                             display([])
-                            show_print("")
+                            show_print("", key)
                         app.cellsSinceLastNewLine = app.pageWidth
                     else:
                         if(app.wideIndex<len(app.sequence)):
@@ -654,22 +655,22 @@ def onKeyPress(key):
                                 app.cellsSinceLastNewLine = app.pageWidth
                         app.wideIndex -=1
                         display(app.sequence[app.wideIndex])
-                        show_print(app.matches[app.wideIndex])
+                        show_print(app.matches[app.wideIndex], key)
                     app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
                 else:
                     app.wideIndex -=1
                     display(app.sequence[app.wideIndex])
-                    show_print(app.matches[app.wideIndex])
+                    show_print(app.matches[app.wideIndex], key)
             else:
                 app.wideIndex = -1
                 app.cellsSinceLastNewLine = 0
                 display([])
-                show_print("")
+                show_print("", key)
         if(key =='right'):
             if(app.pageWidth!= "Infinite"):
                 if(app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine != 0 and app.wideIndex<len(app.sequence)-1):
                     display([])
-                    show_print("\n")
+                    show_print("\n", key)
                     app.cellsSinceLastNewLine = 0
                 else:
                     app.time_delay = app.selected_delay
@@ -677,11 +678,11 @@ def onKeyPress(key):
                         app.wideIndex +=1
                         app.cellsSinceLastNewLine +=1
                         display(app.sequence[app.wideIndex])
-                        show_print(app.matches[app.wideIndex])
+                        show_print(app.matches[app.wideIndex], key)
                     else:
                         app.wideIndex = len(app.sequence)
                         display([])
-                        show_print("")
+                        show_print("", key)
                 app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
             else:
                 app.time_delay = app.selected_delay
@@ -689,14 +690,14 @@ def onKeyPress(key):
                     app.wideIndex +=1
                     app.cellsSinceLastNewLine +=1
                     display(app.sequence[app.wideIndex])
-                    show_print(app.matches[app.wideIndex])
+                    show_print(app.matches[app.wideIndex], key)
                 else:
                     app.wideIndex = len(app.sequence)
                     display([])
-                    show_print("")
+                    show_print("", key)
     else:
         display([])
-        show_print("")
+        show_print("", key)
 
 def onMousePress(x,y):
     if(app.mode!="checking"):
