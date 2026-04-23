@@ -65,3 +65,7 @@ Huge improvement to contraction logic with the ability to expand and update rule
 1.4.1 Patch
 
 Fixed a small, yet annoying, bug in the page width safety check which was causing a repeeated offset of the text when moving in reverse. This bug caused a newline to be generated at every space when moving in reverse after the first newline was created. Moving forwards did not yield this issue but if it happened once becuase of moving backwards, then the entire rest of the text would be offset. This issue has been resolved.
+
+1.4.2
+
+Added a new feature such that lines ending perfectly at the edge of the page don't have an automatic forced space press at the beginning of the next line. That space is the normally occuring space that was part of the imported text, and was in the right place when thinking of the text, but out of place when thinking about the braille representation of the text. The only spaces removed are the ones occuring after a word finishes perfectly on the edge of a page. 

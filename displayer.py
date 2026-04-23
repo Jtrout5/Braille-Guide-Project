@@ -368,12 +368,19 @@ def show_print(text, key):
         app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
         printed_version.value = "*Go to next line*"
         app.time_delay = (int)(app.stepsPerSecond * 3.5)
+        if(app.sequence[app.wideIndex+1]) == ['space']:
+            app.wideIndex+=1
+    elif(text == "SpecialNL"):
+        app.cellsSinceLastNewLine = 0
+        app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
+        printed_version.value = "*Go to next line*"
+        app.time_delay = (int)(app.stepsPerSecond * 3.5)
     if(key!='left'):
         if(app.pageWidth!="Infinite"):
             if(text ==" "):
                 if(not(safe_to_proceed(app.spaceToEdge))):
                     if(app.wideIndex<(len(app.sequence)-1)):
-                        show_print("\n", key)
+                        show_print("SpecialNL", key)
                         display([])
 
 def show_braille(tuple_val):
@@ -713,7 +720,7 @@ def onMousePress(x,y):
             match_keys(app.tokens, legal_tokens)
             paired_expansion(app.sequence, app.matches)
             app.mode = 'auto' if auto_manual_label.value == "Auto Mode" else "manual"
-            app.tokens.clear()        
+            app.tokens.clear()    
         if(file_input_button.contains(x,y)):
             from_device()
             paired_expansion(app.sequence, app.matches)
