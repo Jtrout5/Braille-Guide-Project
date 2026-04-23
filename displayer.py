@@ -58,10 +58,16 @@ except ImportError as e:
 
 
 RULES = { ## WILL ADD NEW RULES AS ISSUES ARISE
-    "ea": {"not_start": True, "no_bridge": True},
+    "ea": {"not_start": True, "no_bridge": True, "no_end": True, "not_solo": True},
     "be": {"only_first_syllable": True},
-    "dis": {"only_first_syllable": True},
-    "con": {"only_first_syllable": True}
+    "dis": {"only_first_syllable": True, "not_solo": True},
+    "con": {"only_first_syllable": True, "not_solo": True},
+    "ing": {"not_start": True, "not_solo": True},
+    "bb": {"not_start": True, "no_end": True},
+    "cc": {"not_start": True, "no_end": True},
+    "ff": {"not_start": True, "no_end": True},
+    "gg": {"not_start": True, "no_end": True},
+    "en": {"not_solo": True}
 }
 
 default_delay = 45    
@@ -126,16 +132,13 @@ def tokenize(txt):
 
 _pyphen_dic = pyphen.Pyphen(lang="en")
 
-def _pyphen_syllables(word):
-    return _pyphen_dic.inserted(word).split("-")
-
-
 def is_valid_contraction(key, word, pos):
-    broken = _pyphen_syllables(word)
+    broken = _pyphen_dic.inserted(word).split("-")
     rules = RULES.get(key)
     if not rules:
         return True
-
+    if rules.get("not_solo") and key == word:
+        return False
     if rules.get("not_start") and pos == 0:
         return False
     if rules.get("only_first_syllable") and key != broken[0]:
@@ -147,6 +150,8 @@ def is_valid_contraction(key, word, pos):
                 count += 1
         if count == 0:
             return False 
+    if rules.get("no_end") and key == broken[len(broken)-1][-(len(key)):]:
+        return False
 
     return True
 
