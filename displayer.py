@@ -58,7 +58,7 @@ except ImportError as e:
 
 
 RULES = { ## WILL ADD NEW RULES AS ISSUES ARISE
-    "ea": {"not_start": True, "no_prefix_boundary": True},
+    "ea": {"not_start": True, "no_bridge": True},
     "be": {"only_first_syllable": True},
     "dis": {"only_first_syllable": True},
     "con": {"only_first_syllable": True}
@@ -140,6 +140,13 @@ def is_valid_contraction(key, word, pos):
         return False
     if rules.get("only_first_syllable") and key != broken[0]:
         return False
+    if rules.get("no_bridge"):
+        count = 0
+        for i in range(len(broken)):
+            if key in broken[i]:
+                count += 1
+        if count == 0:
+            return False 
 
     return True
 
