@@ -6,6 +6,7 @@ import subprocess
 import sys
 import re
 from io import BytesIO
+import warnings
 
 try:
     import pdfplumber
@@ -429,7 +430,7 @@ def onStep():
         if(app.time_delay == (int)(app.selected_delay/3)):
             display([])
             if(app.wideIndex<(len(app.sequence)-1)):
-                if((app.sequence[app.wideIndex] == app.sequence[app.wideIndex+1]) or (not(app.matches[app.wideIndex] == app.matches[app.wideIndex+1]))):
+                if(((app.sequence[app.wideIndex] == app.sequence[app.wideIndex+1]) and len(app.matches[app.wideIndex]) == 1) or (not(app.matches[app.wideIndex] == app.matches[app.wideIndex+1]))):
                     show_print("", 'right')
             else:
                 show_print("", 'right')
@@ -440,7 +441,7 @@ def onStep():
                     app.mode = 'selecting'
                 if(app.wideIndex>= -1):
                     if(app.wideIndex<len(app.sequence)):
-                        if(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine!=0 and app.wideIndex<len(app.sequence)-1):
+                        if(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine>=app.pageWidth and app.cellsSinceLastNewLine!=0 and app.wideIndex<len(app.sequence)-1):
                             display([])
                             show_print("\n", 'right')
                             app.cellsSinceLastNewLine = 0
@@ -533,7 +534,7 @@ def paired_expansion(lst1, lst2):
     duplicate2 = []
     idx = 0
     for item in lst1:
-        if(item!=None): ##In the case of unmatched chars like \t or some weird punctuation which I don't have rules for
+        if(item!=None): ## item = None in the case of unmatched chars like \t or some weird punctuation which I don't have rules for
             for thing in item:
                 duplicate1.append(thing)
                 duplicate2.append(lst2[idx])
@@ -675,7 +676,7 @@ def onKeyPress(key):
                 show_print("", key)
         if(key =='right'):
             if(app.pageWidth!= "Infinite"):
-                if(app.cellsSinceLastNewLine%app.pageWidth == 0 and app.cellsSinceLastNewLine != 0 and app.wideIndex<len(app.sequence)-1):
+                if(app.cellsSinceLastNewLine>=app.pageWidth and app.cellsSinceLastNewLine != 0 and app.wideIndex<len(app.sequence)-1):
                     display([])
                     show_print("\n", key)
                     app.cellsSinceLastNewLine = 0
@@ -922,8 +923,7 @@ def check_for_updates():
         app.mode = 'selecting'
         return
 
-
 check_for_updates()
 updateGUI.toFront()
-
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 app.run()
