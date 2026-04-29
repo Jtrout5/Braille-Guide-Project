@@ -84,6 +84,11 @@ width = size[0]
 height = size[1]
 app.width = width
 app.height = height
+app.storedCellsSince = [None]
+app.reasons = [None]
+app.indexSaverL = []
+app.indexSaverR = []
+app.specialFinalIndex = 0
 
 filepath = os.path.abspath(__file__)
 directory_path = os.path.dirname(filepath)
@@ -92,6 +97,10 @@ currentFile =  os.path.basename(__file__)
 filename = currentFile[:-3]
 
 def check_existence(path):
+    '''
+    Takes 1 arg, path which is the relative bath to the file
+    If it exitsts, then do nothing, else run the braille generator file to create it
+    '''
     if not os.path.exists(path):
         with open(path, "w") as f:
             f.close()
@@ -105,6 +114,11 @@ with open("brailledict.json", "r") as f:
 legal_tokens = list(raw.keys())
 
 def extract_text(path):
+    '''
+    Takes 1 arg, path which is the relative path to the document
+    Tries to extraxt the text from the doc
+    Returns the text from the document as a string
+    '''
     ext = os.path.splitext(path)[1].lower()
 
     if ext == ".txt":
@@ -128,12 +142,23 @@ def extract_text(path):
 
 
 def tokenize(txt):
+    '''
+    Takes 1 arg: text, which is the extracted text
+    Returns a list of all tokens based on the split rules
+    '''
     tokens = re.findall(r"[A-Za-z0-9]+|[^\w\s]| |\n", txt)
     return tokens
 
 _pyphen_dic = pyphen.Pyphen(lang="en")
 
 def is_valid_contraction(key, word, pos):
+    '''
+    Takes 3 args: key, word, pos
+    key: the key representing a contraction from the braille dictionary json file
+    word: the word trying to be shortened
+    pos: where in the word that the key begins
+    Returns true if the key would be valid given the word, false otherwise, only false if a UEB rule would be broken given the key and word.
+    '''
     broken = _pyphen_dic.inserted(word).split("-")
     rules = RULES.get(key)
     if not rules:
@@ -158,6 +183,12 @@ def is_valid_contraction(key, word, pos):
 
 
 def match_case(key, token):
+    '''
+    Takes 2 args, key and token
+    key: the key from the braille dictionary
+    token: the token being checked for capitalization
+    Returns the lowercase key if it's place in the original text was lowercase, capitalized key otherwise
+    '''
     if token.isupper():
         return key.upper()
     elif token[0].isupper():
@@ -166,6 +197,13 @@ def match_case(key, token):
         return key
 
 def match_keys(text, keys):
+    '''
+    Takes 2 args, text and keys
+    text: a list of tokenized text
+    keys: a list of valid keys from the opened braile_dict json file.
+    No returns, but causes mutation of certain app variables
+    Makes the best available matches from the text to braille representation
+    '''
     alpha_wordsigns = [k for k in keys if raw[k]["type"] == "alpha_wordsigns"]
     punctuation = [k for k in keys if raw[k]["type"] == "punctuation"]
     non_alpha_wordsigns = [
@@ -354,6 +392,11 @@ def match_keys(text, keys):
             app.sequence[i] = [[6]] + seq
 
 def safe_to_proceed(dist):
+    '''
+    Takes 1 arg dist, which is the distance to the edge of the page
+    Returns true if there is a space or newline in the text before the end of the page, false otherwise
+    Used in this program to prevent cutting words off in the middle when possible
+    '''
     for i in range(1, dist+1):
         if((app.wideIndex + i) < len(app.sequence)):
             if(app.sequence[app.wideIndex+i] == ['space'] or (app.sequence[app.wideIndex+i] == ['NewLine'])):
@@ -363,6 +406,13 @@ def safe_to_proceed(dist):
     return False
 
 def show_print(text, key):
+    
+    '''
+    Takes 2 args: text and key
+    text: the text to display relating to the braille dots presented, except in 2 newline cases, which will display some different text than given
+    key: which key press was involved in this function call, to prevent a bug associated with this function in certain left key presses and space entries
+    returns no values but does update app variables
+    '''
     printed_version.value = text
     if(text == "\n"):
         app.cellsSinceLastNewLine = 0
@@ -372,10 +422,12 @@ def show_print(text, key):
         if(app.sequence[app.wideIndex+1]) == ['space']:
             app.wideIndex+=1
     elif(text == "SpecialNL"):
+        app.storedCellsSince.append(app.cellsSinceLastNewLine)
         app.cellsSinceLastNewLine = 0
         app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
         printed_version.value = "*Go to next line*"
         app.time_delay = (int)(app.stepsPerSecond * 3.5)
+        app.reasons.append("End")
     if(key!='left'):
         if(app.pageWidth!="Infinite"):
             if(text ==" "):
@@ -385,6 +437,11 @@ def show_print(text, key):
                         display([])
 
 def show_braille(tuple_val):
+    '''
+    Takes 1 arg: tuple_val which is a list or tuple of numbers. 
+    Update fill of braille dots to be black if their id is in the tuple_val, empty/None otherwise
+    Return no vals
+    '''
     for dot in dots:
         if dot.id in tuple_val:
             dot.fill='black'
@@ -392,6 +449,11 @@ def show_braille(tuple_val):
             dot.fill = None
 
 def display(tuple_val):
+    '''
+    Takes 1 arg: tuple_val which is a list or tuple of numbers. 
+    Update fill of buttons to be green if their id is in the tuple_val, grey otherwise
+    Return no vals
+    '''
     for thing in tuple_val:
         if(type(thing) == list): ##Only happens with numbers as a quirk of how match_keys handles digits
             display(thing)
@@ -408,6 +470,11 @@ app.matches = []
 app.sequence = []
 
 def from_device():
+    '''
+    Takes no args and returns no values
+    Runs a helper file to help bring in a file to extract text from
+    Update app variables
+    '''
     app.tokens.clear()
     app.matches.clear()
     app.sequence.clear()
@@ -424,6 +491,11 @@ def from_device():
         match_keys(app.tokens,legal_tokens)
 
 def onStep():
+    '''
+    Built in CMU function
+    Called once each frane
+    Used in this function to handle display in auto mode
+    '''
     if(app.playing == True):
         if(app.time_delay>0):
             app.time_delay-=1
@@ -441,26 +513,47 @@ def onStep():
                     app.mode = 'selecting'
                 if(app.wideIndex>= -1):
                     if(app.wideIndex<len(app.sequence)):
+                        app.specialFinalIndex = app.cellsSinceLastNewLine
                         if(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine>=app.pageWidth and app.cellsSinceLastNewLine!=0 and app.wideIndex<len(app.sequence)-1):
                             display([])
                             show_print("\n", 'right')
                             app.cellsSinceLastNewLine = 0
+                            if(app.currSpec != 'hyphen'):
+                                app.reasons.append("End")
+                                app.storedCellsSince.append(app.pageWidth)
+                            else: 
+                                app.reasons.append("Hyphen")
+                                app.storedCellsSince.append(app.pageWidth)
+                                app.wideIndex = app.indexSaverR.pop()-1
+                        elif(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine == app.pageWidth-1 and app.wideIndex<len(app.sequence)-2 and app.cellsSinceLastNewLine!=0 and not(app.sequence[app.wideIndex+1] == ['space'] or app.sequence[app.wideIndex+1] ==["NewLine"] or app.sequence[app.wideIndex] == ["space"] or app.sequence[app.wideIndex] == ['NewLine'])):
+                            display([3,6])
+                            show_print("-", 'right')
+                            app.currSpec = 'hyphen'
+                            app.cellsSinceLastNewLine+=1
+                            app.indexSaverL.append(app.wideIndex)
+                            app.indexSaverR.append(app.wideIndex+1)
                         else:
+                            app.currSpec = 'letter'
                             app.wideIndex+=1
                             app.cellsSinceLastNewLine += 1
+                            app.storedCellsSince.append(app.cellsSinceLastNewLine)
                             if(app.wideIndex<len(app.sequence)):
                                 display(app.sequence[app.wideIndex])
                                 show_print(app.matches[app.wideIndex], 'right')
                             else:
                                 display([])
                                 show_print("", 'right')
+                                app.currSpec = None
                             if(app.pageWidth!= "Infinite"):
                                 app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
                     else:
-                        play_pause_label.value = "Paused"
+                        play_pause_label.value = "Paused (P)"
+                        play_pause_button.border = 'black'
+                        app.cellsSinceLastNewLine = app.specialFinalIndex
                         app.playing = False
                         display([])
                         show_print("", 'right')
+                        app.currSpec = None
 
 app.mode = 'selecting'
 
@@ -469,6 +562,10 @@ dots = Group()
 updateGUI = Group()
 
 def create_button(locX, id):
+    '''
+    Takes 2 args, locX for horizontal position, and id which represents the dot number associated with the button
+    Returns the shape created
+    '''
     if(id == 'space'):
         new = Oval(locX, 3*app.height/4, app.width/4, app.height/10, fill='grey', border = 'black')
     else:
@@ -478,6 +575,10 @@ def create_button(locX, id):
     return new
 
 def start():
+    '''
+    Takes no args, returns no values, but adds shape to appropraite shape group
+    Create the buttons matching the buttons on a 6 dot brailler
+    '''
     buttons.add(create_button(app.width/9, 3))
     buttons.add(create_button(2*app.width/9, 2))
     buttons.add(create_button(3*app.width/9, 1))
@@ -489,14 +590,14 @@ def start():
 start()
 
 typing_input_button = Rect(0,0,app.width/10, app.height/15, fill='white', border = 'black')
-typing_input_label = Label("Type Your Input", typing_input_button.centerX, typing_input_button.centerY)
+typing_input_label = Label("Type Your Input (T)", typing_input_button.centerX, typing_input_button.centerY)
 file_input_button = Rect(app.width,0,app.width/10, app.height/15, fill='white', border = 'black', align = 'top-right')
-file_input_label = Label("Insert File", file_input_button.centerX, file_input_button.centerY)
+file_input_label = Label("Insert File (F)", file_input_button.centerX, file_input_button.centerY)
 play_pause_button = Circle(7 * app.width/16, app.width/40, app.width/40, fill='white', border = 'black')
-play_pause_label = Label("Paused", play_pause_button.centerX, play_pause_button.centerY)
+play_pause_label = Label("Paused (P)", play_pause_button.centerX, play_pause_button.centerY)
 app.playing = False
 auto_manual_button = Circle(3*app.width/8, app.width/40, app.width/40, fill='white', border = 'black')
-auto_manual_label = Label("Manual Mode", auto_manual_button.centerX, auto_manual_button.centerY)
+auto_manual_label = Label("Manual Mode (M)", auto_manual_button.centerX, auto_manual_button.centerY)
 app.displayMode = "Manual"
 linesPerPageLabel = Label("Characters per line: %d" %app.pageWidth, 9*app.width/40, app.height/40, size = app.width/50)
 linesIncreaseButton = Rect(linesPerPageLabel.centerX+1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black')
@@ -515,13 +616,16 @@ printed_version = Label("", buttons.centerX, app.height/4,size = app.width/40)
 cpm_label = Label("%d cells per minute (Auto Mode)" %app.cpm, file_input_button.left - (3*app.width/16), file_input_button.centerY, size = app.width/60)
 increase_cpm_button = Rect(cpm_label.right+10, cpm_label.centerY, app.width/30, app.width/40, fill="white", border = 'black', align = 'left')
 decrease_cpm_button = Rect(cpm_label.left-10, cpm_label.centerY, app.width/30, app.width/40, fill='white', border = 'black', align = 'right')
-increase_cpm_label = Label("Increase", increase_cpm_button.centerX, increase_cpm_button.centerY)
-decrease_cpm_label = Label("Decrease", decrease_cpm_button.centerX, decrease_cpm_button.centerY)
+increase_cpm_label = Label("Increase (+)", increase_cpm_button.centerX, increase_cpm_button.centerY)
+decrease_cpm_label = Label("Decrease (-)", decrease_cpm_button.centerX, decrease_cpm_button.centerY)
 escape_button = Circle(app.width/2, auto_manual_button.centerY, auto_manual_button.radius, fill='white', border = 'red', borderWidth = 5)
-escape_label = Label("Exit", escape_button.centerX, escape_button.centerY, fill='red', size = inc1Label.size * 2, bold = True)
+escape_label = Label("Exit (X)", escape_button.centerX, escape_button.centerY, fill='red', size = inc1Label.size * 2, bold = True)
 
 
 for i in range(1,7,1):
+    '''
+    Create the Braille Display Dots
+    '''
     offsetX = -15 if i<4 else 15
     offsetY = 0 if i%3 == 1 else 30 if i%3 == 2 else 60
     new = Circle((app.width/2 + offsetX), (app.height/3 + offsetY), 10, fill = None, border = 'grey', borderWidth = 0.5)
@@ -530,6 +634,14 @@ for i in range(1,7,1):
 
 
 def paired_expansion(lst1, lst2):
+    '''
+    Takes 2 lists as argument
+    lst1 should be a list containing lists of lists of numbers (and some special strings)
+    lst2 should be a list of strings
+    Nothing is returned but the original lists are mutated such that 
+    lst1 will be a list of lists of numbers with each list of numbers representing a single braille cell
+    lst2 will be a list of strings but expanded put to match the updated lst 1 such that the indexes line up where each cell is related to the string found at the same index in lst2
+    '''
     duplicate1 = []
     duplicate2 = []
     idx = 0
@@ -568,7 +680,7 @@ def increase_width_10():
     If the game is in screensaver mode, then this will increase the speed of autoclicks by 10 per minute
     Will set to max speed if an increase of 10 would put the speed too high
     '''
-    if ((app.pageWidth != "Infinite") and (app.pageWidth <50)):
+    if ((app.pageWidth != "Infinite") and (app.pageWidth <51)):
         app.pageWidth+=10
         linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
     else:
@@ -599,7 +711,7 @@ def increase_width():
     if app.pageWidth != "Infinite":
         app.pageWidth+=1
         linesPerPageLabel.value = "Characters per line: %d" %app.pageWidth
-        if(app.pageWidth >=60):
+        if(app.pageWidth >60):
             app.pageWidth = "Infinite"
             linesPerPageLabel.value = "Characters per line: %s" %app.pageWidth
 
@@ -610,7 +722,7 @@ def decrease_width():
     Only take action is speed is not already minimum
     '''
     if(app.pageWidth == "Infinite"):
-        app.pageWidth = 59
+        app.pageWidth = 60
         linesPerPageLabel.value = "Characters per line %d" % app.pageWidth
     else:
         if app.pageWidth>10:
@@ -639,48 +751,134 @@ def check_width(x,y):
         increase_width_max()
 
 def onKeyPress(key):
+    '''
+    Built in CMU function taking the label of the key pressed as argument
+    Used to play/pause while in auto mode or move forward and backwards through the braille cells manually
+    '''
     if(app.mode!='typing'):
-        if(key=="space"):
+        if(key=="space" or key =="p" or key == "P"):
             onMousePress(play_pause_button.centerX, play_pause_button.centerY)
+        if(key == "m" or key == "M"):
+            onMousePress(auto_manual_button.centerX, auto_manual_button.centerY)
+        if(key == "+"):
+            onMousePress(increase_cpm_button.centerX, increase_cpm_button.centerY)
+        if(key == "-" or key == "_"):
+            onMousePress(decrease_cpm_button.centerX, decrease_cpm_button.centerY)
+        if(key == "1"):
+            onMousePress(linesDecreaseMaxButton.centerX, linesDecreaseMaxButton.centerY)
+        if(key == "2"):
+            onMousePress(linesDecrease10Button.centerX, linesDecrease10Button.centerY)
+        if(key == "3"):
+            onMousePress(linesDecreaseButton.centerX, linesDecreaseButton.centerY)
+        if(key == "4"):
+            onMousePress(linesIncreaseButton.centerX, linesIncreaseButton.centerY)
+        if(key == "5"):
+            onMousePress(linesIncrease10Button.centerX, linesIncrease10Button.centerY)
+        if(key == "6"):
+            onMousePress(linesIncreaseMaxButton.centerX, linesIncreaseMaxButton.centerY)
+        if(key == "f" or key == 'F'):
+            onMousePress(file_input_button.centerX, file_input_button.centerY)
+        if(key == "t" or key == "T"):
+            onMousePress(typing_input_button.centerX, typing_input_button.centerY)
+        if(key == "x" or key == "X"):
+            onMousePress(escape_button.centerX, escape_button.centerY)
     if(len(app.sequence)>0):
         if(key == 'left'):
             app.time_delay = app.selected_delay
             if(app.wideIndex>0):
                 if(app.pageWidth!="Infinite"):
                     if(app.cellsSinceLastNewLine == 0):
-                        if(app.wideIndex<len(app.sequence)):                            
-                            display(app.sequence[app.wideIndex])
-                            show_print(app.matches[app.wideIndex], key)
+                        if(app.reasons.pop() != "Hyphen"):
+                            if(app.wideIndex<len(app.sequence)):  
+                                app.specialFinalIndex = app.cellsSinceLastNewLine                          
+                                display(app.sequence[app.wideIndex])
+                                show_print(app.matches[app.wideIndex], key)
+                                app.currSpec = 'letter'
+                            else:
+                                display([])
+                                show_print("", key)
+                            app.cellsSinceLastNewLine = app.storedCellsSince.pop()
                         else:
-                            display([])
-                            show_print("", key)
-                        app.cellsSinceLastNewLine = app.pageWidth
+                            if(app.wideIndex<len(app.sequence)): 
+                                app.specialFinalIndex = app.cellsSinceLastNewLine                           
+                                display([3,6])
+                                show_print("-", key)
+                                app.currSpec = 'hyphen'
+                                app.cellsSinceLastNewLine = app.pageWidth
+                                app.indexSaverL.append(app.wideIndex)
+                                app.indexSaverR.append(app.wideIndex+1)
+                            else:
+                                display([])
+                                show_print("", key)
+                                app.currSpec = None
+                            app.storedCellsSince.pop()
                     else:
                         if(app.wideIndex<len(app.sequence)):
+                            app.specialFinalIndex = app.cellsSinceLastNewLine
                             if(app.cellsSinceLastNewLine>1):
+                                if(app.currSpec!='hyphen'):
+                                    app.wideIndex -=1
+                                else:
+                                    app.wideIndex = app.indexSaverL.pop() ## HELL
                                 app.cellsSinceLastNewLine -=1
+                                display(app.sequence[app.wideIndex])
+                                show_print(app.matches[app.wideIndex], key)
+                                app.currSpec = 'letter'
                             else:
-                                app.cellsSinceLastNewLine = app.pageWidth
-                        app.wideIndex -=1
-                        display(app.sequence[app.wideIndex])
-                        show_print(app.matches[app.wideIndex], key)
+                                if(app.reasons.pop() == "Hyphen"):
+                                    display([3,6])
+                                    show_print("-", key)
+                                    app.currSpec = 'hyphen'
+                                    app.cellsSinceLastNewLine = app.pageWidth
+                                    app.indexSaverL.append(app.wideIndex-1)
+                                    app.indexSaverR.append(app.wideIndex)
+                                else:
+                                    app.wideIndex -=1
+                                    display(app.sequence[app.wideIndex])
+                                    show_print(app.matches[app.wideIndex], key)
+                                    app.cellsSinceLastNewLine = app.storedCellsSince.pop()
+                                    app.currSpec = 'letter'
+                        else:
+                            app.wideIndex-=1
+                            display(app.sequence[app.wideIndex])
+                            show_print(app.matches[app.wideIndex], key)
+                            app.currSpec = 'letter'
                     app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
                 else:
                     app.wideIndex -=1
                     display(app.sequence[app.wideIndex])
                     show_print(app.matches[app.wideIndex], key)
+                    app.currSpec = 'letter'
             else:
                 app.wideIndex = -1
                 app.cellsSinceLastNewLine = 0
                 display([])
                 show_print("", key)
+                app.currSpec = None
         if(key =='right'):
             if(app.pageWidth!= "Infinite"):
                 if(app.cellsSinceLastNewLine>=app.pageWidth and app.cellsSinceLastNewLine != 0 and app.wideIndex<len(app.sequence)-1):
+                    app.specialFinalIndex = app.cellsSinceLastNewLine
                     display([])
                     show_print("\n", key)
                     app.cellsSinceLastNewLine = 0
+                    if(app.currSpec != "hyphen"):
+                        app.reasons.append("End")
+                        app.storedCellsSince.append(app.cellsSinceLastNewLine)
+                    else:
+                        app.reasons.append("Hyphen")
+                        app.storedCellsSince.append(app.cellsSinceLastNewLine)
+                        app.wideIndex = app.indexSaverR.pop()-1 
+                elif(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine == app.pageWidth-1 and app.wideIndex<len(app.sequence)-2 and app.cellsSinceLastNewLine!=0 and not(app.sequence[app.wideIndex+1] == ['space'] or app.sequence[app.wideIndex+1] ==["NewLine"])):
+                    app.specialFinalIndex = app.cellsSinceLastNewLine
+                    display([3,6])
+                    show_print("-", 'right')
+                    app.currSpec = 'hyphen'
+                    app.cellsSinceLastNewLine+=1
+                    app.indexSaverL.append(app.wideIndex)
+                    app.indexSaverR.append(app.wideIndex+1)
                 else:
+                    app.currSpec = 'letter'
                     app.time_delay = app.selected_delay
                     if(app.wideIndex<len(app.sequence)-1):
                         app.wideIndex +=1
@@ -695,6 +893,7 @@ def onKeyPress(key):
             else:
                 app.time_delay = app.selected_delay
                 if(app.wideIndex<len(app.sequence)-1):
+                    app.specialFinalIndex = app.cellsSinceLastNewLine
                     app.wideIndex +=1
                     app.cellsSinceLastNewLine +=1
                     display(app.sequence[app.wideIndex])
@@ -708,9 +907,16 @@ def onKeyPress(key):
         show_print("", key)
 
 def onMousePress(x,y):
+    '''
+    Built in CMU function
+    Takes the coordinates of the mouse press as argument
+    Used in this program to select settings, and choose text input methods
+    '''
     if(app.mode!="checking"):
         check_width(x,y)
         if(typing_input_button.contains(x,y)):
+            display([])
+            show_print("", None)
             app.mode = 'typing'
             app.tokens.clear()
             app.matches.clear()
@@ -720,33 +926,39 @@ def onMousePress(x,y):
             app.tokens+=tokenize(text)
             match_keys(app.tokens, legal_tokens)
             paired_expansion(app.sequence, app.matches)
-            app.mode = 'auto' if auto_manual_label.value == "Auto Mode" else "manual"
+            app.mode = 'auto' if auto_manual_label.value == "Auto Mode (M)" else "manual"
             app.tokens.clear()    
         if(file_input_button.contains(x,y)):
+            display([])
+            show_print("", None)
             from_device()
             paired_expansion(app.sequence, app.matches)
             app.mode = 'auto' if app.displayMode == "Auto" else "manual"
             app.wideIndex = -1
             app.tokens.clear()
         if(play_pause_button.contains(x,y)):
-            if(play_pause_label.value == "Running"):
-                play_pause_label.value = "Paused"
+            if(play_pause_label.value == "Running (P)"):
+                play_pause_label.value = "Paused (P)"
+                play_pause_button.border = 'black'
                 app.playing = False
             else:
                 if(app.mode == "auto"):
-                    play_pause_label.value = "Running"
+                    play_pause_label.value = "Running (P)"
+                    play_pause_button.border = 'lime'
                     app.playing = True
         if(auto_manual_button.contains(x,y)):
-            if(auto_manual_label.value == "Manual Mode"):
-                auto_manual_label.value = "Auto Mode"
+            if(auto_manual_label.value == "Manual Mode (M)"):
+                auto_manual_label.value = "Auto Mode (M)"
+                auto_manual_button.border = 'lime'
                 app.displayMode = "Auto"
                 if(app.mode == 'manual'):
                     app.mode = 'auto'
             else:
-                auto_manual_label.value = "Manual Mode"
+                auto_manual_label.value = "Manual Mode (M)"
+                auto_manual_button.border = 'black'
                 app.displayMode = "Manual"
                 app.playing = False
-                play_pause_label.value = "Paused"
+                play_pause_label.value = "Paused (P)"
                 if(app.mode == "auto"):
                     app.mode = 'manual'
         if(increase_cpm_button.contains(x,y)):
@@ -775,12 +987,18 @@ local_version_file = "version.txt"
 temp_dir = "_temp_update_dir"
 
 def get_local_version():
+    '''
+    Takes no args, will return the current program version, 0.0.0 if not found
+    '''
     if not os.path.exists(local_version_file):
         return "0.0.0"
     with open(local_version_file, "r") as f:
         return f.read().strip()
 
 def get_remote_version():
+    '''
+    Takes no args, returns remote version, None if not found
+    '''
     try:
         r = requests.get(github_version_file, timeout=5)
         return r.text.strip()
@@ -788,11 +1006,20 @@ def get_remote_version():
         return None
 
 def is_newer(remote, local):
+    '''
+    Takes 2 args, remote and local which are both version labels
+    Return True if the remote repo has a newer version
+    False otherwise
+    '''
     def parse(v):
         return tuple(map(int, v.split(".")))
     return parse(remote) > parse(local)
 
 def download_and_update():
+    '''
+    Takes no args and returns no values
+    Creates updater script, runs it, and sets everything up for deletion and replacement.
+    '''
     r = requests.get(repo_zip)
     if r.status_code != 200:
         raise Exception("Failed to download update")
@@ -902,6 +1129,10 @@ os.remove("run_update.py")
     exit()
 
 def check_for_updates():
+    '''
+    Takes no args and returns no values
+    Should run at each launcher to check if there is a new release or patch
+    '''
     app.mode = 'checking'
     local = get_local_version()
     remote = get_remote_version()

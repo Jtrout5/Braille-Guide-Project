@@ -73,3 +73,7 @@ Added a new feature such that lines ending perfectly at the edge of the page don
 1.4.3 Patch
 
 Provided a fix for words which are contracted to a double letter having the full word disappear in the middle of the displaying of the braille. Previsouly, "little" would be shown, (1,2,3) would be displayed as braille, then "little" would disappear, then "little" would be shown and (1,2,3) would be displayed as braille. This is now fixed and "little" is displayed the entire time. 
+
+1.5.0 Release
+
+Users can toggle manual/auto mode with M or m, increase cells per minute with + decrease cells per minute with - or _, pause/play while in auto mode with p or P in addition to the already existing spacebar press for this feature, select page width with keys 1,2,3,4,5,6, with 1 represeting minimum width, 2 being to decrease by 10, 3 being to decrease by 1, 4 being to increase by 1, 5 being to increase by 10, 6 being to make infinite. Users can open file dialogue menue with f or F, and open typing input window with t or T, and exit with x or X. Added proper documentation to functions which previously lacked it. Also implemented the hyphenation feature for words which are longer than the width of the page (niche issue). README is now a proper user guide. All buttons with associated hotkeys now display those hotkeys so users know what keys they can use to avoid clicking with the mouse. Certain color updates to buttons to make it more obvious which features are active
