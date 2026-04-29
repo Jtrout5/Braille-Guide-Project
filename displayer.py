@@ -816,10 +816,6 @@ def onKeyPress(key):
                         if(app.wideIndex<len(app.sequence)):
                             app.specialFinalIndex = app.cellsSinceLastNewLine
                             if(app.cellsSinceLastNewLine>1):
-                                if(app.currSpec!='hyphen'):
-                                    app.wideIndex -=1
-                                else:
-                                    app.wideIndex = app.indexSaverL.pop() ## HELL
                                 app.cellsSinceLastNewLine -=1
                                 display(app.sequence[app.wideIndex])
                                 show_print(app.matches[app.wideIndex], key)
