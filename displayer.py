@@ -78,14 +78,13 @@ app.cellsSinceLastNewLine = 0
 app.time_delay = 45
 app.wideIndex = -1
 app.pageWidth = 42
-app.spaceToEdge = app.pageWidth-app.cellsSinceLastNewLine
 size = pyautogui.size()
 width = size[0]
 height = size[1]
 app.width = width
 app.height = height
-app.storedCellsSince = [None]
-app.reasons = [None]
+app.storedCellsSince = []
+app.reasons = []
 app.indexSaverL = []
 app.indexSaverR = []
 app.specialFinalIndex = 0
@@ -416,7 +415,6 @@ def show_print(text, key):
     printed_version.value = text
     if(text == "\n"):
         app.cellsSinceLastNewLine = 0
-        app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
         printed_version.value = "*Go to next line*"
         app.time_delay = (int)(app.stepsPerSecond * 3.5)
         if(app.sequence[app.wideIndex+1]) == ['space']:
@@ -424,14 +422,13 @@ def show_print(text, key):
     elif(text == "SpecialNL"):
         app.storedCellsSince.append(app.cellsSinceLastNewLine)
         app.cellsSinceLastNewLine = 0
-        app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
         printed_version.value = "*Go to next line*"
         app.time_delay = (int)(app.stepsPerSecond * 3.5)
         app.reasons.append("End")
     if(key!='left'):
         if(app.pageWidth!="Infinite"):
             if(text ==" "):
-                if(not(safe_to_proceed(app.spaceToEdge))):
+                if(not(safe_to_proceed((app.pageWidth - app.cellsSinceLastNewLine)+1))):
                     if(app.wideIndex<(len(app.sequence)-1)):
                         show_print("SpecialNL", key)
                         display([])
@@ -544,8 +541,6 @@ def onStep():
                                 display([])
                                 show_print("", 'right')
                                 app.currSpec = None
-                            if(app.pageWidth!= "Infinite"):
-                                app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
                     else:
                         play_pause_label.value = "Paused (P)"
                         play_pause_button.border = 'black'
@@ -788,7 +783,12 @@ def onKeyPress(key):
             if(app.wideIndex>0):
                 if(app.pageWidth!="Infinite"):
                     if(app.cellsSinceLastNewLine == 0):
-                        if(app.reasons.pop() != "Hyphen"):
+                        a = None
+                        try:
+                            a = app.reasons.pop()
+                        except IndexError as e:
+                            a = None
+                        if(a != "Hyphen"):
                             if(app.wideIndex<len(app.sequence)):  
                                 app.specialFinalIndex = app.cellsSinceLastNewLine                          
                                 display(app.sequence[app.wideIndex])
@@ -797,7 +797,10 @@ def onKeyPress(key):
                             else:
                                 display([])
                                 show_print("", key)
-                            app.cellsSinceLastNewLine = app.storedCellsSince.pop()
+                            try:
+                                app.cellsSinceLastNewLine = app.storedCellsSince.pop()
+                            except:
+                                app.cellsSinceLastNewLine = app.pageWidth
                         else:
                             if(app.wideIndex<len(app.sequence)): 
                                 app.specialFinalIndex = app.cellsSinceLastNewLine                           
@@ -811,17 +814,26 @@ def onKeyPress(key):
                                 display([])
                                 show_print("", key)
                                 app.currSpec = None
-                            app.storedCellsSince.pop()
+                            try: 
+                                app.storedCellsSince.pop()
+                            except:
+                                None
                     else:
                         if(app.wideIndex<len(app.sequence)):
                             app.specialFinalIndex = app.cellsSinceLastNewLine
                             if(app.cellsSinceLastNewLine>1):
+                                app.wideIndex-=1
                                 app.cellsSinceLastNewLine -=1
                                 display(app.sequence[app.wideIndex])
                                 show_print(app.matches[app.wideIndex], key)
                                 app.currSpec = 'letter'
                             else:
-                                if(app.reasons.pop() == "Hyphen"):
+                                a = None
+                                try:
+                                   a = app.reasons.pop()
+                                except IndexError as e:
+                                    a = None 
+                                if(a == "Hyphen"):
                                     display([3,6])
                                     show_print("-", key)
                                     app.currSpec = 'hyphen'
@@ -832,14 +844,16 @@ def onKeyPress(key):
                                     app.wideIndex -=1
                                     display(app.sequence[app.wideIndex])
                                     show_print(app.matches[app.wideIndex], key)
-                                    app.cellsSinceLastNewLine = app.storedCellsSince.pop()
+                                    try:
+                                        app.cellsSinceLastNewLine = app.storedCellsSince.pop()
+                                    except:
+                                        app.cellsSinceLastNewLine = app.pageWidth
                                     app.currSpec = 'letter'
                         else:
                             app.wideIndex-=1
                             display(app.sequence[app.wideIndex])
                             show_print(app.matches[app.wideIndex], key)
                             app.currSpec = 'letter'
-                    app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
                 else:
                     app.wideIndex -=1
                     display(app.sequence[app.wideIndex])
@@ -885,7 +899,6 @@ def onKeyPress(key):
                         app.wideIndex = len(app.sequence)
                         display([])
                         show_print("", key)
-                app.spaceToEdge = app.pageWidth - app.cellsSinceLastNewLine
             else:
                 app.time_delay = app.selected_delay
                 if(app.wideIndex<len(app.sequence)-1):
