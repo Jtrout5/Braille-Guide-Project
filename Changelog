@@ -81,3 +81,7 @@ Users can toggle manual/auto mode with M or m, increase cells per minute with + 
 1.5.1 Patch
 
 Quick Hotfix released within the hour of 1.5.0 Release. Fixes some bugs, adds some error handling, and fixed a broken calculation by removing a variable and handling what value would have been used there differently.
+
+1.5.2
+
+Quick patch to address scaling issues relating to more text on button labels causing the text to go past the edge of the buttons. The buttons are larger to increase ease of use and eliminate text scaling issues. 
