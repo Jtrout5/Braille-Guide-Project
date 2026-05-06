@@ -89,3 +89,7 @@ Quick patch to address scaling issues relating to more text on button labels cau
 1.5.3 Patch
 
 Added new contraction rules to ensure that final letter groupsigns never appear at the beginning of words. Also added a new check to make sure that strong groupsigns and contractions take precedence over other groupsigns, so as an example, any word containing "ear" such as fearful or dear, or dears should have the ar contraction instead of the ea contraction since ar is a strong groupsign, whereas previous versions favored the ea contraction.
+
+1.5.4 Patch
+
+Added error handling in regards to checking for updates so that always offline users can run the program without issues. This adds extra ease of use and will avoid the update popup from appearing when the user is offline while still allowing the program to operate. However, users must be online to update if they wish to keep current with the most recent version. Additionally, some online connectiity may be required for installed necessary packages, though this is a one time download. 

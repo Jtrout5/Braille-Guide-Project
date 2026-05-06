@@ -1169,8 +1169,11 @@ def check_for_updates():
 
     if remote is None:
         app.mode = 'selecting'
-
-    if is_newer(remote, local):
+    try: 
+        a = is_newer(remote, local)
+    except AttributeError:
+        a = False
+    if (a):
         box = Rect(width/4, height/3, width/2, height/3, fill='white', border = 'cyan')
         question = Label("A newer version is available, do you wish to update?", box.centerX, box.top + box.height/3, align = 'top', size = width/60)
         app.updateButton = Rect(box.left, box.bottom, box.width/2, box.height/2, fill='green', align = 'bottom-left')
