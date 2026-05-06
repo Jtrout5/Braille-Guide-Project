@@ -68,7 +68,20 @@ RULES = { ## WILL ADD NEW RULES AS ISSUES ARISE
     "cc": {"not_start": True, "no_end": True},
     "ff": {"not_start": True, "no_end": True},
     "gg": {"not_start": True, "no_end": True},
-    "en": {"not_solo": True}
+    "en": {"not_solo": True},
+    "ful": {"not_start": True},
+    "ound": {"not_start": True},
+    "ance": {"not_start": True},
+    "sion": {"not_start": True},
+    "less": {"not_start": True},
+    "ount": {"not_start": True},
+    "ence": {"not_start": True},
+    "ong": {"not_start": True},
+    "tion": {"not_start": True},
+    "ness": {"not_start": True},
+    "ment": {"not_start": True},
+    "ity": {"not_start": True},
+    
 }
 
 default_delay = 45    
@@ -274,22 +287,25 @@ def match_keys(text, keys):
         n = len(token)
 
         dp = [None] * (n + 1)
-        dp[n] = (0, [], [], [])
+        dp[n] = (0, 0, [], [], [])
 
         for pos in range(n - 1, -1, -1):
             best_cells = float("inf")
+            best_pri = float("inf")
             best_seq = None
             best_split = None
             best_keys = None
 
-            next_cells, next_seq, next_split, next_keys = dp[pos + 1]
+            next_cells, next_pri, next_seq, next_split, next_keys = dp[pos + 1]
             fallback_cells = next_cells + 1
+            fallback_pri = next_pri + 2  
             fallback_seq = [None] + next_seq
             fallback_keys = [None] + next_keys
             fallback_split = [token[pos]] + next_split
             
 
             best_cells = fallback_cells
+            best_pri = fallback_pri
             best_seq = fallback_seq
             best_split = fallback_split
             best_keys = fallback_keys
@@ -297,22 +313,26 @@ def match_keys(text, keys):
             for key in groupsigns:
                 if lower.startswith(key, pos) and is_valid_contraction(key, token, pos):
                     end = pos + len(key)
-                    next_cells, next_seq, next_split, next_keys = dp[end]
+                    next_cells, next_pri, next_seq, next_split, next_keys = dp[end]
 
                     val = raw[key]["value"]
                     cell_count = len(val)
 
-                    total = next_cells + cell_count
-                    if total < best_cells or (total == best_cells and len(key) > len(best_split[0])):
-                        best_cells = total
+                    pri = 0 if raw[key]['type'] in ("strong_groupsigns", "strong_contraction") else 1
+
+                    total_cells = next_cells + cell_count
+                    total_pri = next_pri + pri
+
+                    if (best_seq is None or (total_cells, total_pri) < (best_cells, best_pri) or ((total_cells, total_pri) == (best_cells, best_pri) and len(key) > len(best_split[0]))):
+                        best_cells = total_cells
+                        best_pri = total_pri
                         best_seq = [val] + next_seq
                         best_split = [token[pos:end]] + next_split
                         segment = token[pos:end]
                         best_keys = [match_case(key, segment)] + next_keys
+            dp[pos] = (best_cells, best_pri, best_seq, best_split, best_keys)
 
-            dp[pos] = (best_cells, best_seq, best_split, best_keys)
-
-        _, seq_list, split_list, key_list = dp[0]
+        _, _, seq_list, split_list, key_list = dp[0]
 
 
         text[i:i+1] = split_list
