@@ -93,3 +93,7 @@ Added new contraction rules to ensure that final letter groupsigns never appear 
 1.5.4 Patch
 
 Added error handling in regards to checking for updates so that always offline users can run the program without issues. This adds extra ease of use and will avoid the update popup from appearing when the user is offline while still allowing the program to operate. However, users must be online to update if they wish to keep current with the most recent version. Additionally, some online connectiity may be required for installed necessary packages, though this is a one time download. 
+
+1.5.5 Patch
+
+Added a special rule for concept to force the "con" contraction to be used. Pyphen and I disagree on the splitting of this word, so I added a special rule. I will add more special exceptions in the future as they arise. Please post bug reports for words which do not match proper UEB rules. 

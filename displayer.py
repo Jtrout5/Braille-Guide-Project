@@ -179,6 +179,8 @@ def is_valid_contraction(key, word, pos):
         return False
     if rules.get("not_start") and pos == 0:
         return False
+    if(key == 'con' and word == 'concept'): ## Annoying to have to implement this for one word, but pyphen thinks con is not the first syllable of concept but is the first syllable of concepts and conceptual smh. 
+        return True
     if rules.get("only_first_syllable") and key != broken[0]:
         return False
     if rules.get("no_bridge"):
