@@ -21,34 +21,59 @@ Fixed a bug leading to buttons relating to updates not being clickable
 
 1.1.0 Release
 
-Fixed massive oversight on update logic which gave updater permissions one level higher than intended, leading to the deletion of everything in the folder one level above the folder of this project. (Ask me how I know) This bug is completely fixed now, and the update logic has extra safeguards in place to prevent such issues.
+Fixed massive oversight on update logic which gave updater permissions one level higher than intended, leading to the deletion of everything in the folder one level above the folder of this project. (Ask me how I know) 
+This bug is completely fixed now, and the update logic has extra safeguards in place to prevent such issues.
 
 1.1.2 Release
 
-When in auto mode, the printed text will disappear during the short period between cell inputs if the cell inputs are identical. Example: in hello, the period between the 2 l characters will have a blank text showing, to ensure the user understands that it is 2 different instances of the letter. While I believe that the resetting and rehighlighting of the buttons was suffucuent, this adds another layer of guarantees for the ability to learn braille with this software. Please note that multicell contractions are unaffected: Example: According which is dots (6) (1), (1,4) will not flash "According" as it will stay consitently throughout the displaying of the cells making it up.
+When in auto mode, the printed text will disappear during the short period between cell inputs if the cell inputs are identical. 
+Example: in hello, the period between the 2 l characters will have a blank text showing, to ensure the user understands that it is 2 different instances of the letter. 
+While I believe that the resetting and rehighlighting of the buttons was sufficuent, this adds another layer of guarantees for the ability to learn braille with this software. 
+Please note that multicell contractions are unaffected.
+Example: According which is dots (6) (1), (1,4) will not flash "According" as it will stay consitently throughout the displaying of the cells making it up.
 
 1.1.3 Release
 
-Brought 1.1.2 change forward such that the shown enlgish characters are always removed at the same time as the short period between cell inputs begins. Now the only time that the shown characters are not removed are if the shown characters are related to several subsequent cells. Example: "Hello.." as text input will have "H" shown for the full time of the following cell inputs (6) and (1,2,5) without disappearing since the H is related to both of those cells. The H will be removed at the time the last related cell is removed. All other characters will be removed at the exact time their cell display ends.
+Brought 1.1.2 change forward such that the shown enlgish characters are always removed at the same time as the short period between cell inputs begins. 
+Now the only time that the shown characters are not removed are if the shown characters are related to several subsequent cells. 
+Example: "Hello.." as text input will have "H" shown for the full time of the following cell inputs (6) and (1,2,5) without disappearing since the H is related to both of those cells. 
+The H will be removed at the time the last related cell is removed. All other characters will be removed at the exact time their cell display ends.
 
 1.2.0 Release
 
-Page width controls now work correctly when in automatic mode, telling users to go to the next line as soon as they run out of space on their current line, as determined by the page width they selected (default 42 cells wide) Previously this feature only worked in manual mode, but it has now been made available in automatic mode, a place it is arguably far more useful. Upon reaching the end of the page, as defined by the page width value, the screen will display a message telling the user to go to the next line, similar to if a newline character was detected, and the message will appear for 3 seconds, which should be enough time for the user to reset the typehead, and roll the wheel. If this is not enough time, the user can choose to pause as well. Left and right arrow keys, typically used for manual mode, will also work in automatic mode now, a feature requested by most users, so you can skip forwards or backards while in automatic mode, if you, for instance missed a letter or an entire word you can easily return without needing to disable automatic mode, move back with left arrow keys, and then re-enable automatic mode. Fixed an odd bug relating to the display of numbers, via a recursive (in name only) function call. Numbers should display the braille dots and brailler buttons accurately now, whereas before only the print copy would be shown. With this release, most things work correctly but there are a few plans for future updates to make this tool more accurate. 
+Page width controls now work correctly when in automatic mode, telling users to go to the next line as soon as they run out of space on their current line, as determined by the page width they selected (default 42 cells wide) 
+Previously this feature only worked in manual mode, but it has now been made available in automatic mode, a place it is arguably far more useful. 
+Upon reaching the end of the page, as defined by the page width value, the screen will display a message telling the user to go to the next line, similar to if a newline character was detected. The message will appear for 3 seconds, which should be enough time for the user to reset the typehead, and roll the wheel. If this is not enough time, the user can choose to pause as well. 
+Left and right arrow keys, typically used for manual mode, will also work in automatic mode now, a feature requested by most users.
+So you can skip forwards or backwards while in automatic mode, if you, for instance missed a letter or an entire word you can easily return without needing to disable automatic mode.
+Fixed an odd bug relating to the display of numbers, via a recursive (in name only) function call. Numbers should display the braille dots and brailler buttons accurately now, whereas before only the print copy would be shown. 
+With this release, most things work correctly but there are a few plans for future updates to make this tool more accurate. 
 Current plans are as follows:
     Entirely capitalized words appropriately getting a double (6) modifier instead of each letter receiving a dot 6 modifier
     Early warning system for words that would overrun the page width, such that a newline occurs sooner, leading to words not being cut off at the edge of the page
 
 1.2.1 Patch
 
-Fixed a bug leading to crashes when using the "infinite" page width in automatic mode, by adding similar behavior as exists in manual mode. Additionally, implemenmted a None type check to avoid crashes relating to certain punctuation, formatting, or special characters found in some files which are not currently recognized in the braille dictionary generated with this project. This update should resolve many crashes.
+Fixed a bug leading to crashes when using the "infinite" page width in automatic mode, by adding similar behavior as exists in manual mode. 
+Additionally, implemenmted a None type check to avoid crashes relating to certain punctuation, formatting, or special characters found in some files which are not currently recognized in the braille dictionary generated with this project. 
+This update should resolve many crashes.
 
 1.2.2 Patch
 
-Added an exit button so users can end the program without using hotkeys like Alt F4 or CMD W. The button is at the top of the screen, clearly labeled, highlighted in red, and bold compared to other buttons. Should prevent accidental clicking. Clicking the exit button will immediately exit the program. 
+Added an exit button so users can end the program without using hotkeys like Alt F4 or CMD W. 
+The button is at the top of the screen, clearly labeled, highlighted in red, and bold compared to other buttons. 
+Should prevent accidental clicking. 
+Clicking the exit button will immediately exit the program. 
 
 1.2.3 Patch
 
-Fixed a counting bug relating to how many cells had been typed since the most recently new line. This bug, could in rare circumstances cause a crash. The circumestances of this crash were very complicated and only really acheivable if trying to break the program, which is how I found it. In fixing this bug, I also fixed another bug which caused inconsistent application of newline instructions if the user went back any number of cells past where a suggested new line had popped up. That bug led to a slippage of cells versus page width, and would sometimes hide one of the cells when moving in reverse order. All of these issues have now been fixed. With this bug fix, the groundwork has been laid for the implementation of the early warning system for words longer than the amount of space remaining on the page. This feature should be added by 04/17/2026 at the latest.
+Fixed a counting bug relating to how many cells had been typed since the most recently new line. 
+This bug, could in rare circumstances cause a crash. 
+The circumestances of this crash were very complicated and only really acheivable if trying to break the program, which is how I found it. 
+In fixing this bug, I also fixed another bug which caused inconsistent application of newline instructions if the user went back any number of cells past where a suggested new line had popped up. 
+That bug led to a slippage of cells versus page width, and would sometimes hide one of the cells when moving in reverse order. 
+All of these issues have now been fixed. 
+With this bug fix, the groundwork has been laid for the implementation of the early warning system for words longer than the amount of space remaining on the page. This feature should be added by 04/17/2026 at the latest.
 
 1.2.4 Patch
 
@@ -56,44 +81,100 @@ Fixed a bug causing a crash when using Infinite page with in certain configurati
 
 1.3.0 Release
 
-Added a feature which looks ahead to discover if the next word, number, or set of punctuation will cause a newLine before the next space or natural newLine from the source text. If it detects that the next word is too long for the remaining space on the page, then it will cause an early newLine to avoid having a newLine in the middle of a word, which hampers readability. There is one slight caveat to this, and it is that words which themselves are wider than the page will generate a newLine and then also have a newLine interrupting the word later one, for example: "Importantly" when using the minumum page width of 10, takes up 11 cells since there are no contractions in that word. It will start on a newline immediately if it would go over the page width when the check occurred at the last space, then it will give the cells for i m p o r t a n t l (NewLine) y. I am looking into a solution to this very niche issue as most users will have a page width much larger than 10 cells (given that a standard 3x5 index card has page width of 20 cells). The fix will likely use a hyphen as the last cell of the line, causing the previous example to yield i m p o r t a n t - (newLine) l y. I have not yet implemented this fix, and it could take a differnt form, but for now that is the plan. WIll be added at some point, but the next feature planned is fixing certain contractions being used in incorrect places. Examlple the word "each" should be written as e a ch but this program currently generates ea ch which I have been informed is confusing and incorrect. There are many such examples of incorrect contraction uses which I will look into fixing. I know that one possible fix is to make a dictionary entry for each of these words which do not follow the current contraction pattern, but I want to avoid this as I want the dictionary to remain only for actually recognixed ueb contractions. Though I might make a new dictionary for non standard words. Have not fully decided the approach this this problem yet.
+Added a feature which looks ahead to discover if the next word, number, or set of punctuation will cause a newLine before the next space or natural newLine from the source text. 
+If it detects that the next word is too long for the remaining space on the page, then it will cause an early newLine to avoid having a newLine in the middle of a word, which hampers readability. 
+There is one slight caveat to this, and it is that words which themselves are wider than the page will generate a newLine and then also have a newLine interrupting the word later one.
+For example: "Importantly" when using the minumum page width of 10, takes up 11 cells since there are no contractions in that word. 
+It will start on a newline immediately if it would go over the page width when the check occurred at the last space, then it will give the cells for i m p o r t a n t l (NewLine) y. 
+I am looking into a solution to this very niche issue as most users will have a page width much larger than 10 cells (given that a standard 3x5 index card has page width of 20 cells). 
+The fix will likely use a hyphen as the last cell of the line, causing the previous example to yield i m p o r t a n t - (newLine) l y. 
+I have not yet implemented this fix, and it could take a differnt form, but for now that is the plan. 
+WIll be added at some point, but the next feature planned is fixing certain contractions being used in incorrect places. 
+Examlple the word "each" should be written as e a ch but this program currently generates ea ch which I have been informed is confusing and incorrect. 
+There are many such examples of incorrect contraction uses which I will look into fixing. 
+I know that one possible fix is to make a dictionary entry for each of these words which do not follow the current contraction pattern, but I want to avoid this as I want the dictionary to remain only for actually recognixed ueb contractions. 
+Though I might make a new dictionary for non standard words. Have not fully decided the approach this this problem yet.
 
 1.4.0 Release
 
-Huge improvement to contraction logic with the ability to expand and update rules as needed, but I believe I have properly matched UEB for most rules. I have verified correctness with a series of words, but it's possible some errors persist. This improvement was made with the help of pyphen, a library which helps to syllabilize words, which is useful since many UEB contractions are syllable based. As such, pyphen has been added to the requirements list and will now be installed on startup if you have not already installed it. 
+Huge improvement to contraction logic with the ability to expand and update rules as needed, but I believe I have properly matched UEB for most rules. 
+I have verified correctness with a series of words, but it's possible some errors persist. 
+This improvement was made with the help of pyphen, a library which helps to syllabilize words, which is useful since many UEB contractions are syllable based. 
+As such, pyphen has been added to the requirements list and will now be installed on startup if you have not already installed it. 
 
 1.4.1 Patch
 
-Fixed a small, yet annoying, bug in the page width safety check which was causing a repeeated offset of the text when moving in reverse. This bug caused a newline to be generated at every space when moving in reverse after the first newline was created. Moving forwards did not yield this issue but if it happened once becuase of moving backwards, then the entire rest of the text would be offset. This issue has been resolved.
+Fixed a small, yet annoying, bug in the page width safety check which was causing a repeeated offset of the text when moving in reverse. 
+This bug caused a newline to be generated at every space when moving in reverse after the first newline was created. 
+Moving forwards did not yield this issue but if it happened once becuase of moving backwards, then the entire rest of the text would be offset. 
+This issue has been resolved.
 
 1.4.2 Patch
 
-Added a new feature such that lines ending perfectly at the edge of the page don't have an automatic forced space press at the beginning of the next line. That space is the normally occuring space that was part of the imported text, and was in the right place when thinking of the text, but out of place when thinking about the braille representation of the text. The only spaces removed are the ones occuring after a word finishes perfectly on the edge of a page. 
+Added a new feature such that lines ending perfectly at the edge of the page don't have an automatic forced space press at the beginning of the next line. 
+That space is the normally occuring space that was part of the imported text, and was in the right place when thinking of the text, but out of place when thinking about the braille representation of the text. 
+The only spaces removed are the ones occuring after a word finishes perfectly on the edge of a page. 
 
 1.4.3 Patch
 
-Provided a fix for words which are contracted to a double letter having the full word disappear in the middle of the displaying of the braille. Previsouly, "little" would be shown, (1,2,3) would be displayed as braille, then "little" would disappear, then "little" would be shown and (1,2,3) would be displayed as braille. This is now fixed and "little" is displayed the entire time. 
+Provided a fix for words which are contracted to a double letter having the full word disappear in the middle of the displaying of the braille. 
+Previsouly, "little" would be shown, (1,2,3) would be displayed as braille, then "little" would disappear, then "little" would be shown and (1,2,3) would be displayed as braille. 
+This is now fixed and "little" is displayed the entire time. 
 
 1.5.0 Release
 
-Users can toggle manual/auto mode with M or m, increase cells per minute with + decrease cells per minute with - or _, pause/play while in auto mode with p or P in addition to the already existing spacebar press for this feature, select page width with keys 1,2,3,4,5,6, with 1 represeting minimum width, 2 being to decrease by 10, 3 being to decrease by 1, 4 being to increase by 1, 5 being to increase by 10, 6 being to make infinite. Users can open file dialogue menue with f or F, and open typing input window with t or T, and exit with x or X. Added proper documentation to functions which previously lacked it. Also implemented the hyphenation feature for words which are longer than the width of the page (niche issue). README is now a proper user guide. All buttons with associated hotkeys now display those hotkeys so users know what keys they can use to avoid clicking with the mouse. Certain color updates to buttons to make it more obvious which features are active
+Users can toggle manual/auto mode with M or m, 
+increase cells per minute with + decrease cells per minute with - or _, 
+pause/play while in auto mode with p or P in addition to the already existing spacebar press for this feature, 
+select page width with keys 1,2,3,4,5,6, with 1 represeting minimum width, 2 being to decrease by 10, 3 being to decrease by 1, 4 being to increase by 1, 5 being to increase by 10, 6 being to make infinite. 
+Users can open file dialogue menue with f or F, and open typing input window with t or T, and exit with x or X. 
+Added proper documentation to functions which previously lacked it. 
+Also implemented the hyphenation feature for words which are longer than the width of the page (niche issue). 
+README is now a proper user guide. All buttons with associated hotkeys now display those hotkeys so users know what keys they can use to avoid clicking with the mouse. 
+Certain color updates to buttons to make it more obvious which features are active
 
 1.5.1 Patch
 
-Quick Hotfix released within the hour of 1.5.0 Release. Fixes some bugs, adds some error handling, and fixed a broken calculation by removing a variable and handling what value would have been used there differently.
+Quick Hotfix released within the hour of 1.5.0 Release. 
+Fixes some bugs, adds some error handling, and fixed a broken calculation by removing a variable and handling what value would have been used there differently.
 
 1.5.2 Patch
 
-Quick patch to address scaling issues relating to more text on button labels causing the text to go past the edge of the buttons. The buttons are larger to increase ease of use and eliminate text scaling issues. 
+Quick patch to address scaling issues relating to more text on button labels causing the text to go past the edge of the buttons. 
+The buttons are larger to increase ease of use and eliminate text scaling issues. 
 
 1.5.3 Patch
 
-Added new contraction rules to ensure that final letter groupsigns never appear at the beginning of words. Also added a new check to make sure that strong groupsigns and contractions take precedence over other groupsigns, so as an example, any word containing "ear" such as fearful or dear, or dears should have the ar contraction instead of the ea contraction since ar is a strong groupsign, whereas previous versions favored the ea contraction.
+Added new contraction rules to ensure that final letter groupsigns never appear at the beginning of words. 
+Also added a new check to make sure that strong groupsigns and contractions take precedence over other groupsigns. 
+As an example, any word containing "ear" such as fearful, dear, or dears should have the ar contraction instead of the ea contraction since ar is a strong groupsign.
+Previous versions favored the ea contraction.
 
 1.5.4 Patch
 
-Added error handling in regards to checking for updates so that always offline users can run the program without issues. This adds extra ease of use and will avoid the update popup from appearing when the user is offline while still allowing the program to operate. However, users must be online to update if they wish to keep current with the most recent version. Additionally, some online connectiity may be required for installed necessary packages, though this is a one time download. 
+Added error handling in regards to checking for updates so that always offline users can run the program without issues. 
+This adds extra ease of use and will avoid the update popup from appearing when the user is offline while still allowing the program to operate. 
+However, users must be online to update if they wish to keep current with the most recent version. 
+Additionally, some online connectiity may be required for installed necessary packages, though this is a one time download. 
 
 1.5.5 Patch
 
-Added a special rule for concept to force the "con" contraction to be used. Pyphen and I disagree on the splitting of this word, so I added a special rule. I will add more special exceptions in the future as they arise. Please post bug reports for words which do not match proper UEB rules. 
+Added a special rule for concept to force the "con" contraction to be used. 
+Pyphen and I disagree on the splitting of this word, so I added a special rule. 
+I will add more special exceptions in the future as they arise. 
+Please post bug reports for words which do not match proper UEB rules. 
+
+1.6.0 Release
+
+Implemented the double capital indicator for fully caps words. 
+Also have slightly better handling of all capitalization related displays.
+I have tested with many words, including all caps words, all lowercase, single caps words, and alternating caps words. 
+All seem to work, in my testing, as expected. 
+Fixed hyphens appearing in places they were unneeded, causing incorrect placements of NewLines, and causing cell slippage.
+Fixed color on the play/pause button not always updating correctly.
+Increased the size of some buttons.
+Scaled button text to be larger for better visibility, though this testing has only been done on a 1920x1080 monitor to this point and will be tested on different screen sizes in the coming days.
+Made braille dots larger for better visibility.
+Made text displayed above braille dots significantly larger.
+Updated text dissapperance algorithm to work correctly with all caps words.
+Please submit a bug report if anything shows unexpected behavior.

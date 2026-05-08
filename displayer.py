@@ -175,22 +175,22 @@ def is_valid_contraction(key, word, pos):
     rules = RULES.get(key)
     if not rules:
         return True
-    if rules.get("not_solo") and key == word:
+    if rules.get("not_solo") and key == word.lower():
         return False
     if rules.get("not_start") and pos == 0:
         return False
-    if(key == 'con' and word == 'concept'): ## Annoying to have to implement this for one word, but pyphen thinks con is not the first syllable of concept but is the first syllable of concepts and conceptual smh. 
+    if(key == 'con' and word.lower() == 'concept'): ## Annoying to have to implement this for one word, but pyphen thinks con is not the first syllable of concept but is the first syllable of concepts and conceptual smh. 
         return True
-    if rules.get("only_first_syllable") and key != broken[0]:
+    if rules.get("only_first_syllable") and key != broken[0].lower():
         return False
     if rules.get("no_bridge"):
         count = 0
         for i in range(len(broken)):
-            if key in broken[i]:
+            if key in broken[i].lower():
                 count += 1
         if count == 0:
             return False 
-    if rules.get("no_end") and key == broken[len(broken)-1][-(len(key)):]:
+    if rules.get("no_end") and key == broken[len(broken)-1][-(len(key)):].lower():
         return False
 
     return True
@@ -237,7 +237,6 @@ def match_keys(text, keys):
     ]
     leftover_letters = [k for k in keys if raw[k]["type"] == "lowercase"]
     digits = [k for k in keys if raw[k]["type"] == "digits"]
-
     app.sequence = [None] * len(text)
     app.matches = [None] * len(text)
 
@@ -257,7 +256,9 @@ def match_keys(text, keys):
         for key in alpha_wordsigns:
             if token.lower() == key:
                 val = raw[key]["value"]
-                if token[0].isupper():
+                if token.isupper() and len(token) > 1:
+                    val = [[6], [6]] + val
+                elif token[0].isupper():
                     val = [[6]] + val
                 app.sequence[i] = val
                 app.matches[i] = match_case(key, token)
@@ -270,7 +271,9 @@ def match_keys(text, keys):
         for key in non_alpha_wordsigns:
             if token.lower() == key:
                 val = raw[key]["value"]
-                if token[0].isupper():
+                if token.isupper() and len(token) > 1:
+                    val = [[6], [6]] + val
+                elif token[0].isupper():
                     val = [[6]] + val
                 app.sequence[i] = val
                 app.matches[i] = match_case(key, token)
@@ -403,15 +406,57 @@ def match_keys(text, keys):
 
         i += len(new_tokens)
 
-    for i, token in enumerate(text):
+    n = len(text)
+    i = 0
+
+    while i < n:
+        token = text[i]
         seq = app.sequence[i]
 
         if token is None or seq is None:
+            i += 1
             continue
 
-        if token[0].isupper():
-            app.sequence[i] = [[6]] + seq
+        if not (isinstance(token, str) and token and any(ch.isalpha() for ch in token)):
+            i += 1
+            continue
 
+        j = i
+        segment_indices = []
+        segment_text = ""
+
+        while j < n:
+            t = text[j]
+
+            if (
+                t is None or
+                not isinstance(t, str) or
+                not t or
+                not any(ch.isalpha() for ch in t)
+            ):
+                break
+
+            segment_indices.append(j)
+            segment_text += t
+            j += 1
+
+        if (
+            len(segment_text) > 1 and
+            any(ch.isalpha() for ch in segment_text) and
+            all(ch.isupper() for ch in segment_text if ch.isalpha())
+        ):
+            first = segment_indices[0]
+            app.sequence[first] = [[6], [6]] + app.sequence[first]
+
+        else:
+            for k in segment_indices:
+                t = text[k]
+
+                if (isinstance(t, str) and t and t[0].isupper()):
+                    app.sequence[k] = [[6]] + app.sequence[k]
+
+        i = j
+            
 def safe_to_proceed(dist):
     '''
     Takes 1 arg dist, which is the distance to the edge of the page
@@ -509,6 +554,20 @@ def from_device():
         app.tokens = tokenize(text)
         match_keys(app.tokens,legal_tokens)
 
+def count_seq_len(idx):
+    '''
+    Takes one arg, idx which is the current app.wideIndex upon calling
+    Calculates and returns the number of cells between the last space or NewLine and the next space or NewLine
+    '''
+    while idx>0 and app.sequence[idx] not in (['space'], ['NewLine']):
+        idx -=1
+    count = 0
+    while idx<len(app.sequence) and app.sequence[idx] not in (['space'], ['NewLine']):
+        idx +=1
+        count+=1
+    return count
+
+
 def onStep():
     '''
     Built in CMU function
@@ -521,7 +580,9 @@ def onStep():
         if(app.time_delay == (int)(app.selected_delay/3)):
             display([])
             if(app.wideIndex<(len(app.sequence)-1)):
-                if(((app.sequence[app.wideIndex] == app.sequence[app.wideIndex+1]) and len(app.matches[app.wideIndex]) == 1) or (not(app.matches[app.wideIndex] == app.matches[app.wideIndex+1]))):
+                if(((app.sequence[app.wideIndex] == app.sequence[app.wideIndex+1]) and app.sequence[app.wideIndex] != [6] and app.matches[app.wideIndex].lower() != 'little')):
+                    show_print("", 'right')
+                elif(app.matches[app.wideIndex]!= app.matches[app.wideIndex+1]):
                     show_print("", 'right')
             else:
                 show_print("", 'right')
@@ -544,7 +605,7 @@ def onStep():
                                 app.reasons.append("Hyphen")
                                 app.storedCellsSince.append(app.pageWidth)
                                 app.wideIndex = app.indexSaverR.pop()-1
-                        elif(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine == app.pageWidth-1 and app.wideIndex<len(app.sequence)-2 and app.cellsSinceLastNewLine!=0 and not(app.sequence[app.wideIndex+1] == ['space'] or app.sequence[app.wideIndex+1] ==["NewLine"] or app.sequence[app.wideIndex] == ["space"] or app.sequence[app.wideIndex] == ['NewLine'])):
+                        elif(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine == app.pageWidth-1 and app.wideIndex<len(app.sequence)-2 and app.cellsSinceLastNewLine!=0 and not(app.sequence[app.wideIndex+1] == ['space'] or app.sequence[app.wideIndex+1] ==["NewLine"] or app.sequence[app.wideIndex] == ["space"] or app.sequence[app.wideIndex] == ['NewLine']) and count_seq_len(app.wideIndex)>app.pageWidth):
                             display([3,6])
                             show_print("-", 'right')
                             app.currSpec = 'hyphen'
@@ -607,14 +668,14 @@ def start():
 start()
 
 typing_input_button = Rect(0,0,app.width/10, 79*app.height/1080, fill='white', border = 'black')
-typing_input_label = Label("Type Your Input (T)", typing_input_button.centerX, typing_input_button.centerY)
+typing_input_label = Label("Type Your Input (T)", typing_input_button.centerX, typing_input_button.centerY, size = typing_input_button.width/9)
 file_input_button = Rect(app.width,0,app.width/10, 79*app.height/1080, fill='white', border = 'black', align = 'top-right')
-file_input_label = Label("Insert File (F)", file_input_button.centerX, file_input_button.centerY)
+file_input_label = Label("Insert File (F)", file_input_button.centerX, file_input_button.centerY, size = file_input_button.width/8)
 play_pause_button = Circle(7 * app.width/16, app.width/35, app.width/35, fill='white', border = 'black')
-play_pause_label = Label("Paused (P)", play_pause_button.centerX, play_pause_button.centerY)
+play_pause_label = Label("Paused (P)", play_pause_button.centerX, play_pause_button.centerY, size = play_pause_button.radius/3)
 app.playing = False
 auto_manual_button = Circle(3*app.width/8, app.width/35, app.width/35, fill='white', border = 'black')
-auto_manual_label = Label("Manual Mode (M)", auto_manual_button.centerX, auto_manual_button.centerY)
+auto_manual_label = Label("Manual Mode (M)", auto_manual_button.centerX, auto_manual_button.centerY, size = auto_manual_button.radius/4.1)
 app.displayMode = "Manual"
 linesPerPageLabel = Label("Characters per line: %d" %app.pageWidth, 9*app.width/40, app.height/40, size = app.width/50)
 linesIncreaseButton = Rect(linesPerPageLabel.centerX+1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black')
@@ -623,29 +684,29 @@ linesIncreaseMaxButton = Rect(linesIncrease10Button.right+1, linesPerPageLabel.b
 linesDecreaseButton = Rect(linesPerPageLabel.centerX-1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black', align = 'top-right')
 linesDecrease10Button = Rect(linesDecreaseButton.left-1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black', align = 'top-right')
 linesDecreaseMaxButton = Rect(linesDecrease10Button.left-1, linesPerPageLabel.bottom, linesPerPageLabel.width/6, linesPerPageLabel.height, fill="white", border = 'black', align = 'top-right')
-inc1Label = Label("+1",linesIncreaseButton.centerX, linesIncreaseButton.centerY)
-inc2Label = Label("+10",linesIncrease10Button.centerX, linesIncreaseButton.centerY)
-inc3Label = Label("Max",linesIncreaseMaxButton.centerX, linesIncreaseButton.centerY)
-inc4Label = Label("-1",linesDecreaseButton.centerX, linesIncreaseButton.centerY)
-inc5Label = Label("-10",linesDecrease10Button.centerX, linesIncreaseButton.centerY)
-inc6Label = Label("Min",linesDecreaseMaxButton.centerX, linesIncreaseButton.centerY)
-printed_version = Label("", buttons.centerX, app.height/4,size = app.width/40)
+inc1Label = Label("+1",linesIncreaseButton.centerX, linesIncreaseButton.centerY, size = linesDecreaseButton.width/2.5)
+inc2Label = Label("+10",linesIncrease10Button.centerX, linesIncreaseButton.centerY, size = linesDecreaseButton.width/2.5)
+inc3Label = Label("∞",linesIncreaseMaxButton.centerX, linesIncreaseButton.bottom - linesDecreaseMaxButton.height/3, size = linesDecreaseButton.width)
+inc4Label = Label("-1",linesDecreaseButton.centerX, linesIncreaseButton.centerY, size = linesDecreaseButton.width/2.5)
+inc5Label = Label("-10",linesDecrease10Button.centerX, linesIncreaseButton.centerY, size = linesDecreaseButton.width/2.5)
+inc6Label = Label("Min",linesDecreaseMaxButton.centerX, linesIncreaseButton.centerY, size = linesDecreaseButton.width/2.5)
+printed_version = Label("", buttons.centerX, app.height/4,size = app.width/25)
 cpm_label = Label("%d cells per minute (Auto Mode)" %app.cpm, file_input_button.left - (3*app.width/16), play_pause_button.centerY, size = app.width/60)
-increase_cpm_button = Rect(cpm_label.right+10, cpm_label.centerY, app.width/25, app.width/40, fill="white", border = 'black', align = 'left')
-decrease_cpm_button = Rect(cpm_label.left-10, cpm_label.centerY, app.width/25, app.width/40, fill='white', border = 'black', align = 'right')
-increase_cpm_label = Label("Increase (+)", increase_cpm_button.centerX, increase_cpm_button.centerY)
-decrease_cpm_label = Label("Decrease (-)", decrease_cpm_button.centerX, decrease_cpm_button.centerY)
+increase_cpm_button = Rect(cpm_label.right+10, cpm_label.centerY, app.width/18, app.width/40, fill="white", border = 'black', align = 'left')
+decrease_cpm_button = Rect(cpm_label.left-10, cpm_label.centerY, app.width/18, app.width/40, fill='white', border = 'black', align = 'right')
+increase_cpm_label = Label("Increase (+)", increase_cpm_button.centerX, increase_cpm_button.centerY,  size = increase_cpm_button.width/6)
+decrease_cpm_label = Label("Decrease (-)", decrease_cpm_button.centerX, decrease_cpm_button.centerY,  size = decrease_cpm_button.width/6)
 escape_button = Circle(app.width/2, auto_manual_button.centerY, auto_manual_button.radius, fill='white', border = 'red', borderWidth = 5)
-escape_label = Label("Exit (X)", escape_button.centerX, escape_button.centerY, fill='red', size = inc1Label.size * 2, bold = True)
+escape_label = Label("Exit (X)", escape_button.centerX, escape_button.centerY, fill='red', size = escape_button.radius/2, bold = True)
 
 
 for i in range(1,7,1):
     '''
     Create the Braille Display Dots
     '''
-    offsetX = -15 if i<4 else 15
-    offsetY = 0 if i%3 == 1 else 30 if i%3 == 2 else 60
-    new = Circle((app.width/2 + offsetX), (app.height/3 + offsetY), 10, fill = None, border = 'grey', borderWidth = 0.5)
+    offsetX = -30 if i<4 else 30
+    offsetY = 0 if i%3 == 1 else 50 if i%3 == 2 else 100
+    new = Circle((app.width/2 + offsetX), (app.height/3 + offsetY), 20, fill = None, border = 'grey', borderWidth = 0.5)
     new.id = i
     dots.add(new)
 
@@ -901,7 +962,7 @@ def onKeyPress(key):
                         app.reasons.append("Hyphen")
                         app.storedCellsSince.append(app.cellsSinceLastNewLine)
                         app.wideIndex = app.indexSaverR.pop()-1 
-                elif(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine == app.pageWidth-1 and app.wideIndex<len(app.sequence)-2 and app.cellsSinceLastNewLine!=0 and not(app.sequence[app.wideIndex+1] == ['space'] or app.sequence[app.wideIndex+1] ==["NewLine"])):
+                elif(app.pageWidth!= "Infinite" and app.cellsSinceLastNewLine == app.pageWidth-1 and app.wideIndex<len(app.sequence)-2 and app.cellsSinceLastNewLine!=0 and not(app.sequence[app.wideIndex+1] == ['space'] or app.sequence[app.wideIndex+1] ==["NewLine"]) and count_seq_len(app.wideIndex)>app.pageWidth):
                     app.specialFinalIndex = app.cellsSinceLastNewLine
                     display([3,6])
                     show_print("-", 'right')
@@ -990,6 +1051,7 @@ def onMousePress(x,y):
                 app.displayMode = "Manual"
                 app.playing = False
                 play_pause_label.value = "Paused (P)"
+                play_pause_button.border = 'black'
                 if(app.mode == "auto"):
                     app.mode = 'manual'
         if(increase_cpm_button.contains(x,y)):
