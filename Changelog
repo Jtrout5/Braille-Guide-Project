@@ -178,3 +178,7 @@ Made braille dots larger for better visibility.
 Made text displayed above braille dots significantly larger.
 Updated text dissapperance algorithm to work correctly with all caps words.
 Please submit a bug report if anything shows unexpected behavior.
+
+1.6.1 Patch
+Fixed a bug I accidentally reintroduced regarding contraction selection which was leading to other being contracted as o th er instead of o the r. 
+Tiebreakers now take length of the contraction key into effect more than the amount of non-contracted letters remaining.

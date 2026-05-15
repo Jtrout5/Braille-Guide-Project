@@ -328,7 +328,7 @@ def match_keys(text, keys):
                     total_cells = next_cells + cell_count
                     total_pri = next_pri + pri
 
-                    if (best_seq is None or (total_cells, total_pri) < (best_cells, best_pri) or ((total_cells, total_pri) == (best_cells, best_pri) and len(key) > len(best_split[0]))):
+                    if (best_seq is None or (total_cells, -len(key), total_pri) < (best_cells, -len(best_split[0]), best_pri)):
                         best_cells = total_cells
                         best_pri = total_pri
                         best_seq = [val] + next_seq
