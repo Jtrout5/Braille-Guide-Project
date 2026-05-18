@@ -833,6 +833,11 @@ def onKeyPress(key):
     Built in CMU function taking the label of the key pressed as argument
     Used to play/pause while in auto mode or move forward and backwards through the braille cells manually
     '''
+    if(app.mode == 'checking'):
+        if(key =='y' or key =='Y'):
+            onMousePress(app.updateButton.centerX, app.updateButton.centerY)
+        if(key == 'n' or key =='N'):
+            onMousePress(app.noUpdateButton.centerX, app.noUpdateButton.centerY)
     if(app.mode!='typing'):
         if(key=="space" or key =="p" or key == "P"):
             onMousePress(play_pause_button.centerX, play_pause_button.centerY)
@@ -1242,8 +1247,8 @@ def check_for_updates():
         question = Label("A newer version is available, do you wish to update?", box.centerX, box.top + box.height/3, align = 'top', size = width/60)
         app.updateButton = Rect(box.left, box.bottom, box.width/2, box.height/2, fill='green', align = 'bottom-left')
         app.noUpdateButton = Rect(box.right, box.bottom, box.width/2, box.height/2, fill='red', align = 'bottom-right')
-        ans1 = Label("Yes", app.updateButton.centerX, app.updateButton.centerY, fill = 'white')
-        ans2 = Label("No", app.noUpdateButton.centerX, app.noUpdateButton.centerY, fill='white')
+        ans1 = Label("Yes (Y)", app.updateButton.centerX, app.updateButton.centerY, fill = 'white')
+        ans2 = Label("No (N)", app.noUpdateButton.centerX, app.noUpdateButton.centerY, fill='white')
         updateGUI.add(box, question, app.updateButton, app.noUpdateButton, ans1, ans2)
         return 
     else:

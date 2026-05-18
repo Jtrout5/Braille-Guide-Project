@@ -24,7 +24,7 @@ Fixed a bug leading to buttons relating to updates not being clickable
 Fixed massive oversight on update logic which gave updater permissions one level higher than intended, leading to the deletion of everything in the folder one level above the folder of this project. (Ask me how I know) 
 This bug is completely fixed now, and the update logic has extra safeguards in place to prevent such issues.
 
-1.1.2 Release
+1.1.2 Patch
 
 When in auto mode, the printed text will disappear during the short period between cell inputs if the cell inputs are identical. 
 Example: in hello, the period between the 2 l characters will have a blank text showing, to ensure the user understands that it is 2 different instances of the letter. 
@@ -32,7 +32,7 @@ While I believe that the resetting and rehighlighting of the buttons was sufficu
 Please note that multicell contractions are unaffected.
 Example: According which is dots (6) (1), (1,4) will not flash "According" as it will stay consitently throughout the displaying of the cells making it up.
 
-1.1.3 Release
+1.1.3 Patch
 
 Brought 1.1.2 change forward such that the shown enlgish characters are always removed at the same time as the short period between cell inputs begins. 
 Now the only time that the shown characters are not removed are if the shown characters are related to several subsequent cells. 
@@ -182,3 +182,6 @@ Please submit a bug report if anything shows unexpected behavior.
 1.6.1 Patch
 Fixed a bug I accidentally reintroduced regarding contraction selection which was leading to other being contracted as o th er instead of o the r. 
 Tiebreakers now take length of the contraction key into effect more than the amount of non-contracted letters remaining.
+
+1.6.2 Patch
+Updating/Not Updating when a new update is available can now be accomplished using the Y/N keys instead of needing to physically press using your mouse. Accessibility feature. Labels updated to match
