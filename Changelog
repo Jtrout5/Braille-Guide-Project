@@ -185,3 +185,7 @@ Tiebreakers now take length of the contraction key into effect more than the amo
 
 1.6.2 Patch
 Updating/Not Updating when a new update is available can now be accomplished using the Y/N keys instead of needing to physically press using your mouse. Accessibility feature. Labels updated to match
+
+1.6.2 Patch
+Fixed an issue I previously fixed, and then reintroduced regarding the overlap of ea and ar contractions in the middle of words where "ear" was present. 
+ar has precedence but ea was getting precedence because of a recalculation I made to fix another bug.
