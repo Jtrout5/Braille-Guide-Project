@@ -175,8 +175,6 @@ def is_valid_contraction(key, word, pos):
     rules = RULES.get(key)
     if not rules:
         return True
-    if(key == 'ea' and word[pos+2].lower() == 'r'):
-        return False
     if rules.get("not_solo") and key == word.lower():
         return False
     if rules.get("not_start") and pos == 0:
@@ -193,6 +191,8 @@ def is_valid_contraction(key, word, pos):
         if count == 0:
             return False 
     if rules.get("no_end") and key == broken[len(broken)-1][-(len(key)):].lower():
+        return False
+    if(key == 'ea' and word[pos+2].lower() == 'r'):
         return False
 
     return True
